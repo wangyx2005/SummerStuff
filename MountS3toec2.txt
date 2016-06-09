@@ -1,0 +1,24 @@
+## SETTING UP THE BUCKET
+
+Create 2 custom permissions on the user, one for each of the following scripts: (change specifics to your bucket's details)
+
+{ "Statement": [ { 
+  "Action": "s3:*", 
+  "Effect": "Allow", 
+  "Resource": [ 
+    "arn:aws:s3:::BUCKET_NAME", 
+    "arn:aws:s3:::BUCKET_NAME/*" 
+  ] 
+} ] }
+And
+
+{ "Statement": [ { 
+  "Action": "s3:ListAllMyBuckets", 
+  "Effect": "Allow", 
+  "Resource": "arn:aws:s3:::*" 
+} ] }
+
+
+## SETTING UP THE VM
+
+goofys vs s3fs

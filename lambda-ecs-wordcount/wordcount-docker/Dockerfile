@@ -18,5 +18,7 @@ RUN pip install awscli boto3
 
 WORKDIR /home/yx
 
-CMD /bin/bash
+COPY wordcount.py /home/yx/wordcount.py
+
+CMD python wordcount.py
 
