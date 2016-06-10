@@ -1,2 +1,3 @@
 docker-images/
 .zip
+!docker-images/**/Dockerfile
