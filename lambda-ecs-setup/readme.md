@@ -10,26 +10,26 @@ make_bucket: s3://container-clouds-output/
 #### **Step 2: Create an SQS queue**
 create an SQS to pass the file information which is put in the s3 to ecs container. Record the QueueUrl, this will be used for the Lambda function setup.
 ```shell
-$ aws sqs create-queue --queue-name container-clouder-queue
+$ aws sqs create-queue --queue-name container-clouds-queue
 
 {
-    "QueueUrl": "https://queue.amazonaws.com/183351756044/container-clouder-queue"
+    "QueueUrl": "https://queue.amazonaws.com/183351756044/container-clouds-queue"
 }
 ```
 Then get the arn for this sqs queue by run the following command, also record the QueueArn.
 ```shell
-$ aws sqs get-queue-attributes --queue-url https://queue.amazonaws.com/183351756044/container-clouder-queue --attribute-name QueueArn
+$ aws sqs get-queue-attributes --queue-url https://queue.amazonaws.com/183351756044/container-clouds-queue --attribute-name QueueArn
 {
     "Attributes": {
-        "QueueArn": "arn:aws:sqs:us-east-1:183351756044:container-clouder-queue"
+        "QueueArn": "arn:aws:sqs:us-east-1:183351756044:container-clouds-queue"
     }
 }
 ```
 
 #### **Step 3: Create the docker image**
-In this step, a wrapper image is created from your imaging process docker image (or other job), this wrapper simply runs a python script which download the file from input S3 bucket and uploaded files to output S3 bucket. 
+In this step, a image with file operations wrapper is created from your imaging process (or other job) docker image, this wrapper simply runs a python script which download the file from input S3 bucket and uploaded files to output S3 bucket. 
 
-First, a script *runscript.py* is created to handler the download/upload inside the container.
+First, a script *runscript.py* is created to handler the download/upload inside the container. A shell script version of such script will be also be provided later.
 
 ```python
 from __future__ import print_function
@@ -40,7 +40,7 @@ import os
 
 
 UPLOADBUCKET = os.getenv('UPLOADBUCKET')
-QueueUrl = os.getenv('QUEUQURL')
+QueueUrl = os.getenv('QUEUEURL')
 RESULT_PATH = <your job result you want to upload>
 DOWNLOAD_PATH = <Input path for your job script>
 
@@ -90,9 +90,91 @@ COPY runscript.py /home/yx/runscript.py
 CMD python runscript.py 
 ```
 
+Then build the image with command:
+```shell
+$ docker build -t <image name> .
+```
+Tag it and upload the image. You can use Amazon EC2 Container Registry (ecr) if you want to keep this image private.
+```shell
+$ docker tag <image name>:<version> <your user id>/<image name>:<version>
+$ docker push <your user id>/<image name>:<version>
+```
 
+#### **Step 4: Create ECS task**
+Suppose you have already have an ECS cluster running and you have a Docker image ready after finishing previous step, you can create an ECS task definition.
 
-#### **Step 3: Create the Lambda function**
+```javascript
+{
+    "containerDefinitions": [
+        {
+            "volumesFrom": [],
+            "memory": <make sure you allocate enough memory for your job>,
+            "extraHosts": null,
+            "dnsServers": null,
+            "disableNetworking": null,
+            "dnsSearchDomains": null,
+            "portMappings": [],
+            "hostname": null,
+            "essential": true,
+            "entryPoint": null,
+            "mountPoints": [],
+            "name": "<your task name>",
+            "ulimits": null,
+            "dockerSecurityOptions": null,
+            "environment": [
+                {
+                    "name": "AWS_ACCESS_KEY_ID",
+                    "value": "<your aws access key id>" 
+                },
+                {
+                    "name": "AWS_SECRET_ACCESS_KEY",
+                    "value": "<your aws secret access key>"
+                },
+                {
+                    "name": "AWS_DEFAULT_REGION",
+                    "value": "<your aws region>"
+                },
+                {
+                    "name": "AWS_DEFAULT_OUTPUT",
+                    "value": "json"
+                },
+                {
+                    "name": "UPLOADBUCKET",
+                    "value": "container-clouds-output" //<your upload bucket name>
+                },
+                {
+                    "name": "QUEUEURL"
+                    "value": "https://queue.amazonaws.com/183351756044/container-clouder-queue"
+                }
+            ],
+            "links": null,
+            "workingDirectory": null,
+            "readonlyRootFilesystem": null,
+            "image": "261965710151.dkr.ecr.us-east-1.amazonaws.com/wordcount",
+            "command": null,
+            "user": null,
+            "dockerLabels": null,
+            "logConfiguration": null,
+            "cpu": 512,
+            "privileged": null
+        }
+    ],
+    "volumes": [],
+    "family": "<your task name>"
+}
+```
+Alternatively, you can use awscli to register the task definition:
+
+```shell
+$ aws ecs register-task-definition --cli-input-json file://register-task-definition.json
+```
+
+for security reason, you should create an IAM role that is only allow access to the SQS and S3 you are using for this setup and give the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY of such role in the register-task-definition.json file.
+
+// Do I need this?
+#### **Step 5: Add a policy to your ECS instance role that allows access to SQS and S3**
+
+#### **Step 5: Create the Lambda function**
 From the aws Lambda console [https://console.aws.amazon.com/lambda](https://console.aws.amazon.com/lambda), create a new lambda function.
 
 1. skip the blueprint.
@@ -144,3 +226,7 @@ In **Role**, create a new role that allows this lambda function to invoke functi
 }
 ```
 
+#### **Step 6: Add permission for S3 to allow S3 trigger lambda function**
+
+
+#### **Step 7: test your services using lambda test**
