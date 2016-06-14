@@ -40,7 +40,7 @@ import os
 
 
 UPLOADBUCKET = os.getenv('UPLOADBUCKET')
-QueueUrl = os.getenv('QUEUEURL')
+QUEUEURL = os.getenv('QUEUEURL')
 RESULT_PATH = <your job result you want to upload>
 DOWNLOAD_PATH = <Input path for your job script>
 
@@ -50,7 +50,7 @@ s3 = boto3.client('s3')
 
 # retrive messages from aws SQS, then parse the message to get
 # the s3 information, then run word_count and output file to s3 bucket
-msgs = sqs.receive_message(QueueUrl=QueueUrl, MaxNumberOfMessages=10)
+msgs = sqs.receive_message(QueueUrl=QUEUEURL, MaxNumberOfMessages=10)
 for msg in msgs['Messages']:
     record = json.loads(msg['Body'])['Records'][0]
     bucket = record['s3']['bucket']['name']
@@ -64,7 +64,7 @@ for msg in msgs['Messages']:
 
 ``` 
 
-In the docker file, the first RUN command is to setup libraries for python, for most cases, you should already have python and pip for your task image, then you can just omit this command. the second RUN command is to download AWS command line interface(awscli) and boto3, a python libary for aws sevices. The last thing is to copy the runscript.py that handler the download/upload work inside the container.  
+Then, we build the image with wrapper by creating a new dockerfile. In the docker file, the first RUN command is to setup libraries for python, for most cases, you should already have python and pip for your task image, then you can just omit this command. the second RUN command is to download AWS command line interface(awscli) and boto3, a python libary for aws sevices. The last thing is to copy the *runscript.py* that handler the download/upload work inside the container.  
 
 ```dockerfile
 FROM <your processing image>
@@ -144,32 +144,34 @@ Suppose you have already have an ECS cluster running and you have a Docker image
                 },
                 {
                     "name": "QUEUEURL"
-                    "value": "https://queue.amazonaws.com/183351756044/container-clouder-queue"
+                    "value": "https://queue.amazonaws.com/183351756044/container-clouder-queue" //<the QueueUrl you got in the step 2>
                 }
             ],
             "links": null,
             "workingDirectory": null,
             "readonlyRootFilesystem": null,
-            "image": "261965710151.dkr.ecr.us-east-1.amazonaws.com/wordcount",
+            "image": <your Docker image repo>,
             "command": null,
             "user": null,
             "dockerLabels": null,
             "logConfiguration": null,
-            "cpu": 512,
+            "cpu": 128, // 128/1024 share of CPU this task got if multi-container is running on a instance
             "privileged": null
         }
     ],
     "volumes": [],
-    "family": "<your task name>"
+    "family": "<your family task name>"
 }
 ```
+It is worthly notice that the "family" attribute is the task name you will use in the Lambda function setup.
+
 Alternatively, you can use awscli to register the task definition:
 
 ```shell
 $ aws ecs register-task-definition --cli-input-json file://register-task-definition.json
 ```
 
-for security reason, you should create an IAM role that is only allow access to the SQS and S3 you are using for this setup and give the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY of such role in the register-task-definition.json file.
+for security reason, you should create an **IAM role** that is only allow access to the SQS and S3 you are using for this setup and give the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY of such role in the *register-task-definition.json* file.
 
 // Do I need this?
 #### **Step 5: Add a policy to your ECS instance role that allows access to SQS and S3**
