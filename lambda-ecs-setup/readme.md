@@ -1,23 +1,23 @@
-#### * Step 1: Set up S3 bucket *
+#### **Step 1: Set up S3 bucket**
 started by setting up two S3 bucket to hold the input file and the result
-```
+```shell
 $ aws s3 mb s3://container-clouds-input
 make_bucket: s3://container-clouds-input/
 $ aws s3 mb s3://container-clouds-output
 make_bucket: s3://container-clouds-output/
 ```
 
-#### * Step 2: Create an SQS queue *
+#### **Step 2: Create an SQS queue**
 create an SQS to pass the file information which is put in the s3 to ecs container. Record the QueueUrl, this will be used for the Lambda function setup.
-```
-aws sqs create-queue --queue-name container-clouder-queue
+```shell
+$ aws sqs create-queue --queue-name container-clouder-queue
 
 {
     "QueueUrl": "https://queue.amazonaws.com/183351756044/container-clouder-queue"
 }
 ```
 Then get the arn for this sqs queue by run the following command, also record the QueueArn.
-```
+```shell
 $ aws sqs get-queue-attributes --queue-url https://queue.amazonaws.com/183351756044/container-clouder-queue --attribute-name QueueArn
 {
     "Attributes": {
@@ -26,13 +26,15 @@ $ aws sqs get-queue-attributes --queue-url https://queue.amazonaws.com/183351756
 }
 ```
 
-#### * Step 3: Create the Lambda function *
+#### 
+
+#### **Step 3: Create the Lambda function**
 From the aws Lambda console [https://console.aws.amazon.com/lambda](https://console.aws.amazon.com/lambda), create a new lambda function.
 
 1. skip the blueprint.
-2. choose * S3 * as * Event source type *, the bucket that is created for input file for the * Bucket * and * Object Created * for * Event type *.
-3. choose * Runtime * as * Python 2.7 *. The following code snippe will send messages to the sqs queue you just created and start your image process container.
-```
+2. choose **S3** as **Event source type**, the bucket that is created for input file for the **Bucket** and **Object Created** for **Event type**.
+3. choose **Runtime** as **Python 2.7**. The following code snippe will send messages to the sqs queue you just created and start your image process container.
+```python
 from __future__ import print_function
 import boto3
 import json
@@ -51,8 +53,8 @@ def lambda_handler(event, context):
     
     return 'send messages to sqs and start ecs'
 ```
-In * Role *, create a new role that allows this lambda function to invoke function, send message through sqs and run task on ecs. The following snippet is an sample role configuration.
-```
+In **Role**, create a new role that allows this lambda function to invoke function, send message through sqs and run task on ecs. The following snippet is an sample role configuration.
+```javascript
 {
     "Statement": [
         {
