@@ -11,10 +11,11 @@ RUN apt-get -y update && apt-get install -y \
     python \
     python-dev \
     python-distribute \
-    python-pip
+    python-pip \
+    python-scipy
 
 # update numpy, scipy and SimpleITK
-RUN pip install numpy scipy && \
+RUN pip install numpy && \
     pip install -f http://www.simpleitk.org/SimpleITK/resources/software.html SimpleITK 
 
 RUN mkdir -p /home/jporter && cd /home/jporter && \
