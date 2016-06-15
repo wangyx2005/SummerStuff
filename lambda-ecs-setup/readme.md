@@ -119,21 +119,21 @@ Suppose you have already have an ECS cluster running and you have a Docker image
             "essential": true,
             "entryPoint": null,
             "mountPoints": [],
-            "name": "<your task name>",
+            "name": <your task name>,
             "ulimits": null,
             "dockerSecurityOptions": null,
             "environment": [
                 {
                     "name": "AWS_ACCESS_KEY_ID",
-                    "value": "<your aws access key id>" 
+                    "value": <your aws access key id>
                 },
                 {
                     "name": "AWS_SECRET_ACCESS_KEY",
-                    "value": "<your aws secret access key>"
+                    "value": <your aws secret access key>
                 },
                 {
                     "name": "AWS_DEFAULT_REGION",
-                    "value": "<your aws region>"
+                    "value": <your aws region>
                 },
                 {
                     "name": "AWS_DEFAULT_OUTPUT",
