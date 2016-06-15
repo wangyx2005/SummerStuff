@@ -7,8 +7,8 @@ import os
 
 UPLOADBUCKET = os.getenv('UPLOADBUCKET')
 QUEUEURL = os.getenv('QUEUEURL')
-RESULT_PATH = <your job result you want to upload>
-DOWNLOAD_PATH = <Input path for your job script>
+RESULT_PATH = '/home/jporter/nodule-seg/media_root/latest_run'
+DOWNLOAD_PATH = '/home/jporter/nodule-seg/media_root/init/'
 
 print('Receiving message from SQS')
 sqs = boto3.client('sqs')
@@ -22,12 +22,12 @@ for msg in msgs['Messages']:
     bucket = record['s3']['bucket']['name']
     key = record['s3']['object']['key']
     # download your file
-    s3.download_file(bucket, key, DOWNLOAD_PATH)
+    s3.download_file(bucket, key, DOWNLOAD_PATH + key)
     # run your job script
     subprocess.call(['sh', '/home/jporter/nodule-seg/scripts/segment_one.batch'])
-    # compress your output for upload
-    filename = key.split('.')[0] + '.zip'
+    # compress your output and upload to S3
+    filename = RESULT_PATH + '../' + key.split('.')[0] + '.zip'
     subprocess.call(['zip', '-rv9', filename, RESULT_PATH])
     s3.upload_file(filename, UPLOADBUCKET, filename)
-    sqs.delete_message(QueueUrl=QueueUrl, ReceiptHandle=msg['ReceiptHandle'])
+    sqs.delete_message(QueueUrl=QUEUEURL, ReceiptHandle=msg['ReceiptHandle'])
     print('Job on file %s has finished' % key)

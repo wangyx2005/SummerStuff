@@ -59,7 +59,7 @@ for msg in msgs['Messages']:
     # run your job script
     subprocess.call(<your job run command>)
     s3.upload_file(RESULT_PATH, UPLOADBUCKET, RESULT_PATH)
-    sqs.delete_message(QueueUrl=QueueUrl, ReceiptHandle=msg['ReceiptHandle'])
+    sqs.delete_message(QueueUrl=QUEUEURL, ReceiptHandle=msg['ReceiptHandle'])
     print('Job on file %s has finished' % key)
 
 ``` 
