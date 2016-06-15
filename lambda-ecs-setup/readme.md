@@ -144,7 +144,7 @@ Suppose you have already have an ECS cluster running and you have a Docker image
                     "value": "container-clouds-output" //<your upload bucket name>
                 },
                 {
-                    "name": "QUEUEURL"
+                    "name": "QUEUEURL",
                     "value": "https://queue.amazonaws.com/183351756044/container-clouder-queue" //<the QueueUrl you got in the step 2>
                 }
             ],
@@ -182,7 +182,8 @@ From the aws Lambda console [https://console.aws.amazon.com/lambda](https://cons
 
 1. skip the blueprint.
 2. choose **S3** as **Event source type**, the bucket that is created for input file for the **Bucket** and **Object Created** for **Event type**.
-3. choose **Runtime** as **Python 2.7**. The following code snippe will send messages to the sqs queue you just created and start your image process container.
+3. choose **Runtime** as **Python 2.7**. The following code snippet will send messages to the sqs queue you just created and start your image process container.
+In the code snippet QueueUrl is your SQS QueueUrl, taskDefinition is the **family** attribute of your *register-task-definition.json* file. 
 
 ```python
 from __future__ import print_function
@@ -197,7 +198,7 @@ ecs = boto3.client('ecs')
 def lambda_handler(event, context):
     print("Received event: " + json.dumps(event, indent=2))
 
-    QueueUrl = https://queue.amazonaws.com/183351756044/container-clouder-queue"
+    QueueUrl = "https://queue.amazonaws.com/183351756044/container-clouder-queue"
     sqs.send_message(QueueUrl=QueueUrl, MessageBody=json.dumps(event))
     ecs.run_task(taskDefinition='wordcount-task', count=1)
     
@@ -221,15 +222,18 @@ In **Role**, create a new role that allows this lambda function to invoke functi
                 "arn:aws:logs:*:*:*",
                 "arn:aws:lambda:*:*:*:*",
                 "arn:aws:sqs:us-east-1:183351756044:container-clouder-queue",
-                "arn:aws:ecs:*:*:*"
+                "arn:aws:ecs:us-east-1:183351756044:task-definition/lungtest-task"
             ]
         }
     ],
     "Version": "2012-10-17"
 }
 ```
+Then **click create function**
+
+In the resulting page, **Event sources** tag -> **Add event source**, choose **S3** as **Event source type**, your input S3 bucket as **Bucket** and **Object Created** as **Event type**
 
 #### **Step 6: Add permission for S3 to allow S3 trigger lambda function**
-
+In S3 console, **Properties** tag -> **Event** -> **Add Notification**. Allow S3 send to the **Lambda function** you just created.
 
 #### **Step 7: test your services using lambda test**
