@@ -56,7 +56,7 @@ for msg in msgs['Messages']:
     bucket = record['s3']['bucket']['name']
     key = record['s3']['object']['key']
     s3.download_file(bucket, key, DOWNLOAD_PATH)
-    # input your job script
+    # run your job script
     subprocess.call(<your job run command>)
     s3.upload_file(RESULT_PATH, UPLOADBUCKET, RESULT_PATH)
     sqs.delete_message(QueueUrl=QueueUrl, ReceiptHandle=msg['ReceiptHandle'])
@@ -77,7 +77,8 @@ RUN apt-get -y update && apt-get install -y \
     python \
     python-dev \
     python-distribute \
-    python-pip
+    python-pip \
+    zip
 
 # Install AWS CLI
 
