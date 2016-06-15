@@ -26,8 +26,8 @@ for msg in msgs['Messages']:
     # run your job script
     subprocess.call(['sh', '/home/jporter/nodule-seg/scripts/segment_one.batch'])
     # compress your output for upload
-    filename = key.split('.')[0]
-
-    s3.upload_file(RESULT_PATH, UPLOADBUCKET, RESULT_PATH)
+    filename = key.split('.')[0] + '.zip'
+    subprocess.call(['zip', '-rv9', filename, RESULT_PATH])
+    s3.upload_file(filename, UPLOADBUCKET, filename)
     sqs.delete_message(QueueUrl=QueueUrl, ReceiptHandle=msg['ReceiptHandle'])
     print('Job on file %s has finished' % key)
