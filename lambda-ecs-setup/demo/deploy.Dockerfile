@@ -8,8 +8,6 @@ RUN apt-get install -y zip
 
 RUN pip install awscli boto3
 
-COPY 
-
 COPY runscript.py /home/jporter/nodule-seg/scripts/runscript.py
 
-CMD python runscript.py 
+CMD python runscript.py
