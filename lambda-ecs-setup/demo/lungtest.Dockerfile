@@ -25,7 +25,9 @@ RUN mkdir -p /home/jporter && cd /home/jporter && \
 
 # omit for the real job, just try to make calculation quicker for demo purpose.
 RUN cd /home/jporter/nodule-seg/scripts && \
-    sed -e 's/500/5/' segment_one.batch > segment.batch
+    sed -e 's/500/5/' segment_one.batch > tmp.batch && \
+    sed -e 's/"0c2b8406cd8ca33af1130c3c91cfb70b2797df7a.nii"/$1/' tmp.batch > segment.batch && \
+    rm tmp.batch
 
 # COPY 0c2b8406cd8ca33af1130c3c91cfb70b2797df7a.nii  /home/jporter/nodule-seg/media_root/init/
 

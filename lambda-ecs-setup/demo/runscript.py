@@ -24,7 +24,7 @@ for msg in msgs['Messages']:
     # download your file
     s3.download_file(bucket, key, DOWNLOAD_PATH + key)
     # run your job script
-    subprocess.call(['sh', '/home/jporter/nodule-seg/scripts/segment_one.batch'])
+    subprocess.call(['sh', '/home/jporter/nodule-seg/scripts/segment.batch', key])
     # compress your output and upload to S3
     filename = RESULT_PATH + '/../' + key.split('.')[0] + '.zip'
     subprocess.call(['zip', '-rv9', filename, RESULT_PATH])
