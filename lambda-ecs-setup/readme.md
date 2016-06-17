@@ -1,3 +1,6 @@
+#### **Prerequisite**
+Before you start, make sure you have full access to **Lambda**, **Simple Queue Services**, **S3**, **EC2 Container Services** and **EC2 Container Registry** (if you want to keep your images in a private repo on aws) 
+
 #### **Step 1: Set up S3 bucket**
 started by setting up two S3 bucket to hold the input file and the result
 ```shell
@@ -173,9 +176,6 @@ $ aws ecs register-task-definition --cli-input-json file://register-task-definit
 ```
 
 for security reason, you should create an **IAM role** that is only allow access to the SQS and S3 you are using for this setup and give the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY of such role in the *register-task-definition.json* file.
-
-// Do I need this?
-#### **Step 5: Add a policy to your ECS instance role that allows access to SQS and S3**
 
 #### **Step 5: Create the Lambda function**
 From the aws Lambda console [https://console.aws.amazon.com/lambda](https://console.aws.amazon.com/lambda), create a new lambda function.

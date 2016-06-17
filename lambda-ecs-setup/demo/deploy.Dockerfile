@@ -1,6 +1,6 @@
 FROM wangyx2005/lungtest
 
-MAINTAINER Yuxing Wang 'wangyx2005@gmail.com'
+MAINTAINER "Yuxing Wang" wangyx2005@gmail.com
 
 # Install AWS CLI
 
