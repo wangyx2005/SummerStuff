@@ -1,0 +1,30 @@
+# This is the hostname:port that the server is running on.
+# Used for logging and email
+server: localhost:9901
+
+# Working directory
+# This is the directory path used for working files. If left blank,
+# use a system temp directory.
+# NB: To run in the pesscara/grunt docker, this must be set to /data
+directory: /data
+
+# Report Warn status to Consul when we have more than warnLevel jobs
+warnLevel: 3
+# Report Critical status to Consul when we have more than criticalLevel jobs
+warnLevel: 5
+
+# Mail configuration
+mail:
+  from: noreply@grunt-docker.io
+  server: smtprelay.mayo.edu
+  # username: grunt
+  # password: <secret>
+  
+services:
+  - endPoint: change
+    commandLine: ["sh", "/change123.sh", "<input", ">output"]
+    # put the full path of the command
+    description: change all occurrences of 123 to 456
+  - endPoint: exit
+    commandLine: ["exit"]
+    description: exit running docker container
