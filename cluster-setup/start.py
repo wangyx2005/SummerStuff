@@ -7,7 +7,7 @@ ACCESS_ID = DEFAULT_ACCESS_KEY_ID
 SECRET_KEY = DEFAULT_SECRET_KEY
 
 IMAGE_ID = DEFAULT_IMAGE_ID
-SIZE_ID = 't1.micro'
+SIZE_ID = 't2.micro'
 
 cls = get_driver(Provider.EC2)
 driver = cls(ACCESS_ID, SECRET_KEY, region="us-east-1")
