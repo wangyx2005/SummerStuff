@@ -31,7 +31,8 @@ JOB_DICT = \
         'result_file_name': '',
         'source_file_path': '',
         'result_file_path': '',
-        'resource_name': ''
+        'resource_name': '',
+        'bucket': ''
     }
 
 RESOURCE_DICT = \
@@ -69,6 +70,7 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
             # just parse the real file name
             job['source_file_name'] = file.split('/')[-1]
             job['source_file_path'] = 'source/' + job['source_file_name']
+            job['bucket'] = bucket
 
             try:
                 s3.download_file(bucket, file, 'source/' + file)
@@ -135,20 +137,69 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             job['job_id'] = response.json()['uuid']
             job['ip'] = service['ip']
             job['result_file_name'] = result_file_name
+            job['result_file_path'] = 'result/' + result_file_name
             job['resource_name'] = service['name']
             working_job.put(job)
         # wait after each round is finished
         wait(wait_time)
 
 
-def check_status(working_job, finished_job, resource):
+def check_status(working_job, finished_job, resource, future_job, wait_time=180):
     while True:
         for job in working_job:
+            # check status
             try:
                 status = requests.get(job['ip'] + '/rest/job/' + job['job_id'])
                 status.raise_for_status()
             except requests.exceptions.HTTPError as err:
                 logger.warn(err)
                 working_job.put(job)
+                continue
             except Exception as err:
                 logger.error('Unexpected error occurs on check_status')
+                continue
+            size = working_job.qsize()
+            if status.json()['status'] is 'success':
+                finished_job.put(job)
+                service['name'] = job['service_name']
+                service['ip'] = job['ip']
+                resource[service['name']].put(service)
+            # TODO: check the running status
+            elif status.json()['status'] is 'run':
+                working_job.put(job)
+            # restart the job
+            else:
+                future_job.put(job)
+                service['name'] = job['service_name']
+                service['ip'] = job['ip']
+                resource[service['name']].put(service)
+
+            wait(wait_time / size)
+
+
+def upload_result(finished_job, region='us-east-1', stream_size=32):
+    s3 = client('s3', region)
+    while True:
+        job = finished_job.get()
+        url = job['ip'] + '/rest/job/' + job['job_id'] + '/file/output'
+        try:
+            result = requests.get(url, stream=True)
+            result.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            logger.warn(err)
+            finished_job.put(job)
+            continue
+        except Exception as err:
+            logger.error('Unexpeced error happend in retrieve file %s from %s', (job['result_file_name'], job['ip']))
+            logger.error(err)
+            continue
+        # save result at local
+        with open(job['result_file_path', 'wb']) as f:
+            for chunk in result.iter_content(chunk_size=stream_size):
+                if chunk: # filter out keep-alive new chunks
+                    f.write(chuck)
+
+        try:
+            s3.upload_file(job['result_file_name'], job['bucket'], job['result_file_path'])
+        except:
+
