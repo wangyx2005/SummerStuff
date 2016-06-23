@@ -8,9 +8,12 @@ job dict
 {
     'ip':
     'job_id':
+    'file_name':
     'upload_file_path':
     'download_file_name':
 }
+
+
 
 
 ### functions
@@ -32,6 +35,6 @@ check the job status in the working_job, once a job is finished, the resource is
 
 
 ```
-upload_result(finished_job)
+upload_result(finished_job, uploadfunc=_upload)
 ```
 download file from grunt according to job_info in the finished_job queue, then upload file to result S3 bucket.
