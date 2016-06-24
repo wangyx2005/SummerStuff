@@ -93,6 +93,19 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
             for service_name, job_queue in future_job:
                 job_queue.put(dict(job))
 
+            # delete received message
+            try:
+                msgs = sqs.delete_message(QueueUrl=message_URL,
+                                          ReceiptHandle=msg['ReceiptHandle'])
+            except boto3.exceptions.ClientError as err:
+                logger.debug(traceback.format_exc())
+                logger.warn(err.response)
+            except Exception as err:
+                logger.debug(traceback.format_exc())
+                logger.error('Unexpected error occures!!')
+                logger.error(err)
+        break
+
 
 def submit_processing(future_job, resource, working_job, wait_time=30):
     # service['ip'] already contains 'http://'
@@ -142,6 +155,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             working_job.put(job)
         # wait after each round is finished
         sleep(wait_time)
+        break
 
 
 def check_status(working_job, finished_job, resource, future_job, wait_time=180):
@@ -175,6 +189,7 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
                 resource[service['name']].put(service)
 
             sleep(wait_time / size)
+        break
 
 
 def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
@@ -217,3 +232,4 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
 
         os.remove(job['result_file_path'])
         logger.info('remove file %s', job['result_file_name'])
+        break
