@@ -168,7 +168,7 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
             logger.error('Unexpected error occurs on check_status')
             continue
         size = working_job.qsize()
-        print(status.json()['status'])
+        # print(status.json()['status'])
         service = {}
         if status.json()['status'] == 'success':
             finished_job.put(job)
