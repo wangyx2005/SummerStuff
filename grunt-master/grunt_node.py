@@ -11,13 +11,6 @@ import requests.exceptions
 from boto3 import client
 import botocore.exceptions
 
-from nodeconfig import *
-
-'''
-UPLOADBUCKET
-
-'''
-
 '''
 for information about grunt, see https://github.com/Mayo-QIN/grunt
 '''
@@ -108,7 +101,6 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
                 logger.debug(traceback.format_exc())
                 logger.error('Unexpected error occures!!')
                 logger.error(err)
-        break
 
 
 def submit_processing(future_job, resource, working_job, wait_time=30):
@@ -159,7 +151,6 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             working_job.put(job)
         # wait after each round is finished
         sleep(wait_time)
-        break
 
 
 def check_status(working_job, finished_job, resource, future_job, wait_time=180):
@@ -195,7 +186,6 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
             resource[service['name']].put(service)
 
         sleep(wait_time / (size + 1))
-        break
 
 
 def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
@@ -238,4 +228,3 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
 
         os.remove(job['result_file_path'])
         logger.info('remove file %s', job['result_file_name'])
-        break
