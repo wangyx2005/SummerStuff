@@ -2,7 +2,7 @@ import json
 import subprocess
 import os
 import logging
-from time import wait
+from time import sleep
 from queue import Queue
 
 import requests
@@ -59,7 +59,7 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
                 logger.debug(traceback.format_exc())
                 logger.error('Unexpected error occures!!')
                 logger.error(err)
-            wait(wait_time)
+            sleep(wait_time)
 
         logger.info('receive file info from SQS')
         for msg in msgs['Messages']:
@@ -141,7 +141,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             job['resource_name'] = service['name']
             working_job.put(job)
         # wait after each round is finished
-        wait(wait_time)
+        sleep(wait_time)
 
 
 def check_status(working_job, finished_job, resource, future_job, wait_time=180):
@@ -174,7 +174,7 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
                 service['ip'] = job['ip']
                 resource[service['name']].put(service)
 
-            wait(wait_time / size)
+            sleep(wait_time / size)
 
 
 def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
