@@ -1,9 +1,7 @@
 import json
-import subprocess
 import os
 import logging
 from time import sleep
-from queue import Queue
 import traceback
 
 import requests
