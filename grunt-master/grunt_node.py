@@ -9,7 +9,7 @@ import traceback
 import requests
 import requests.exceptions
 from boto3 import client
-import boto3.exceptions
+import botocore.exceptions
 
 from nodeconfig import *
 
@@ -33,7 +33,6 @@ JOB_DICT = \
         'source_file_path': '',
         'result_file_path': '',
         'service_name': '',
-        '': ''
     }
 
 RESOURCE_DICT = \
@@ -53,7 +52,7 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
             logger.debug('pull message from SQS: %s', message_URL)
             try:
                 msgs = sqs.receive_message(QueueUrl=message_URL)
-            except boto3.exceptions.ClientError as err:
+            except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
             except Exception as err:
@@ -102,7 +101,7 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
             try:
                 msgs = sqs.delete_message(QueueUrl=message_URL,
                                           ReceiptHandle=msg['ReceiptHandle'])
-            except boto3.exceptions.ClientError as err:
+            except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
             except Exception as err:
@@ -178,13 +177,15 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
             logger.error('Unexpected error occurs on check_status')
             continue
         size = working_job.qsize()
-        if status.json()['status'] is 'success':
+        print(status.json()['status'])
+        service = {}
+        if status.json()['status'] == 'success':
             finished_job.put(job)
             service['name'] = job['service_name']
             service['ip'] = job['ip']
             resource[service['name']].put(service)
         # TODO: check the running status
-        elif status.json()['status'] is 'running':
+        elif status.json()['status'] == 'running':
             working_job.put(job)
         # restart the job
         else:
@@ -193,7 +194,7 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
             service['ip'] = job['ip']
             resource[service['name']].put(service)
 
-        sleep(wait_time / size)
+        sleep(wait_time / (size + 1))
         break
 
 
@@ -218,14 +219,14 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
         with open(job['result_file_path'], 'wb') as f:
             for chunk in result.iter_content(chunk_size=stream_size):
                 if chunk:  # filter out keep-alive new chunks
-                    f.write(chuck)
+                    f.write(chunk)
         logger.info('retrieve file %s', job['result_file_name'])
 
         # upload file to s3 bucket
         try:
             s3.upload_file(job['result_file_name'],
                            result_bucket, job['result_file_path'])
-        except boto3.exceptions.ClientError as err:
+        except botocore.exceptions.ClientError as err:
             logger.warn(err)
             finished_job.put(job)
         except Exception as err:
