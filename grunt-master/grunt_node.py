@@ -4,6 +4,7 @@ import os
 import logging
 from time import sleep
 from queue import Queue
+import traceback
 
 import requests
 import requests.exceptions
@@ -31,8 +32,8 @@ JOB_DICT = \
         'result_file_name': '',
         'source_file_path': '',
         'result_file_path': '',
-        'resource_name': '',
-        'bucket': ''
+        'service_name': '',
+        '': ''
     }
 
 RESOURCE_DICT = \
@@ -66,15 +67,19 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
             record = json.loads(msg['Body'])['Records'][0]
             bucket = record['s3']['bucket']['name']
             file = record['s3']['object']['key']
+            # print(file)
             job = dict(JOB_DICT)
             # just parse the real file name
             job['source_file_name'] = file.split('/')[-1]
+            # print(job['source_file_name'])
             job['source_file_path'] = 'source/' + job['source_file_name']
             job['bucket'] = bucket
 
             try:
-                s3.download_file(bucket, file, 'source/' + file)
+                s3.download_file(bucket, file, 'source/' +
+                                 job['source_file_name'])
             except Exception as err:
+                # This part has problem. formate is wrong
                 # put the failed file info back to sqs
                 logger.warn(err)
                 logger.debug(traceback.format_exc())
@@ -89,8 +94,8 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
                 continue
 
             # put job into future_job queue
-            logger.info('download file %s from S3 bucket', file)
-            for service_name, job_queue in future_job:
+            logger.info('download file %s from S3 bucket', job['source_file_name'])
+            for job_queue in future_job.values():
                 job_queue.put(dict(job))
 
             # delete received message
@@ -123,7 +128,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
                 para = {'output': result_file_name}
                 file = {'input': open(job['source_file_path'], 'rb')}
                 response = requests.post(
-                    service['ip'] + '/rest/service/run_job', files=file, data=para)
+                    service['ip'] + '/rest/service/change', files=file, data=para)
                 response.raise_for_status()
             except requests.exceptions.HTTPError as err:
                 # TODO: add failed numbers for checking resource health
@@ -151,7 +156,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             job['ip'] = service['ip']
             job['result_file_name'] = result_file_name
             job['result_file_path'] = 'result/' + result_file_name
-            job['resource_name'] = service['name']
+            job['service_name'] = service['name']
             working_job.put(job)
         # wait after each round is finished
         sleep(wait_time)
@@ -160,35 +165,35 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
 
 def check_status(working_job, finished_job, resource, future_job, wait_time=180):
     while True:
-        for job in working_job:
-            # check status
-            try:
-                status = requests.get(job['ip'] + '/rest/job/' + job['job_id'])
-                status.raise_for_status()
-            except requests.exceptions.HTTPError as err:
-                logger.warn(err)
-                working_job.put(job)
-                continue
-            except Exception as err:
-                logger.error('Unexpected error occurs on check_status')
-                continue
-            size = working_job.qsize()
-            if status.json()['status'] is 'success':
-                finished_job.put(job)
-                service['name'] = job['service_name']
-                service['ip'] = job['ip']
-                resource[service['name']].put(service)
-            # TODO: check the running status
-            elif status.json()['status'] is 'run':
-                working_job.put(job)
-            # restart the job
-            else:
-                future_job.put(job)
-                service['name'] = job['service_name']
-                service['ip'] = job['ip']
-                resource[service['name']].put(service)
+        job = working_job.get()
+        # check status
+        try:
+            status = requests.get(job['ip'] + '/rest/job/' + job['job_id'])
+            status.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            logger.warn(err)
+            working_job.put(job)
+            continue
+        except Exception as err:
+            logger.error('Unexpected error occurs on check_status')
+            continue
+        size = working_job.qsize()
+        if status.json()['status'] is 'success':
+            finished_job.put(job)
+            service['name'] = job['service_name']
+            service['ip'] = job['ip']
+            resource[service['name']].put(service)
+        # TODO: check the running status
+        elif status.json()['status'] is 'running':
+            working_job.put(job)
+        # restart the job
+        else:
+            future_job[job['service_name']].put(job)
+            service['name'] = job['service_name']
+            service['ip'] = job['ip']
+            resource[service['name']].put(service)
 
-            sleep(wait_time / size)
+        sleep(wait_time / size)
         break
 
 
@@ -210,7 +215,7 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
             logger.error(err)
             continue
         # save result at local
-        with open(job['result_file_path', 'wb']) as f:
+        with open(job['result_file_path'], 'wb') as f:
             for chunk in result.iter_content(chunk_size=stream_size):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chuck)
