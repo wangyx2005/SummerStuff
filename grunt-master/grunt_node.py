@@ -224,8 +224,8 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
 
         # upload file to s3 bucket
         try:
-            s3.upload_file(job['result_file_name'],
-                           result_bucket, job['result_file_path'])
+            s3.upload_file(job['result_file_path'],
+                           result_bucket, job['result_file_name'])
         except botocore.exceptions.ClientError as err:
             logger.warn(err)
             finished_job.put(job)
