@@ -117,7 +117,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
                 para = {'output': result_file_name}
                 file = {'input': open(job['source_file_path'], 'rb')}
                 response = requests.post(
-                    service['ip'] + '/rest/service/change', files=file, data=para)
+                    service['ip'] + '/rest/service/runJob', files=file, data=para)
                 response.raise_for_status()
             except requests.exceptions.HTTPError as err:
                 # TODO: add failed numbers for checking resource health

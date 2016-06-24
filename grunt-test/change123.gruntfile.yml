@@ -21,7 +21,7 @@ mail:
   # password: <secret>
   
 services:
-  - endPoint: change
+  - endPoint: runJob
     commandLine: ["sh", "/change123.sh", "<input", ">output"]
     # put the full path of the command
     description: change all occurrences of 123 to 456
