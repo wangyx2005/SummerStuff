@@ -177,7 +177,7 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
             wait(wait_time / size)
 
 
-def upload_result(finished_job, region='us-east-1', stream_size=32):
+def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
     s3 = client('s3', region)
     while True:
         job = finished_job.get()
@@ -190,16 +190,30 @@ def upload_result(finished_job, region='us-east-1', stream_size=32):
             finished_job.put(job)
             continue
         except Exception as err:
-            logger.error('Unexpeced error happend in retrieve file %s from %s', (job['result_file_name'], job['ip']))
+            logger.error('Unexpeced error happend in retrieve file %s from %s',
+                         (job['result_file_name'], job['ip']))
             logger.error(err)
             continue
         # save result at local
         with open(job['result_file_path', 'wb']) as f:
             for chunk in result.iter_content(chunk_size=stream_size):
-                if chunk: # filter out keep-alive new chunks
+                if chunk:  # filter out keep-alive new chunks
                     f.write(chuck)
+        logger.info('retrieve file %s', job['result_file_name'])
 
+        # upload file to s3 bucket
         try:
-            s3.upload_file(job['result_file_name'], job['bucket'], job['result_file_path'])
-        except:
+            s3.upload_file(job['result_file_name'],
+                           result_bucket, job['result_file_path'])
+        except boto3.exceptions.ClientError as err:
+            logger.warn(err)
+            finished_job.put(job)
+        except Exception as err:
+            logger.debug(traceback.format_exc())
+            logger.error('Unexpected error happend will upload file')
+            logger.err(err)
+        logger.info('upload file %s to s3 bucket %s',
+                    (job['result_file_name'], result_bucket))
 
+        os.remove(job['result_file_path'])
+        logger.info('remove file %s', job['result_file_name'])
