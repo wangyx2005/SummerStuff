@@ -54,10 +54,24 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
         logger.info('receive ip info from SQS')
         for msg in msgs['Messages']:
             msg = json.loads(msg['Body'])
+            
+            # add service into resource
             service = {}
             service['ip'] = 'http://' + msg['ip'] + ':' + msg['port']
             service['name'] = msg['service_name']
             resource.put(service)
+
+            # delete received message
+            try:
+                msgs = sqs.delete_message(QueueUrl=message_URL,
+                                          ReceiptHandle=msg['ReceiptHandle'])
+            except botocore.exceptions.ClientError as err:
+                logger.debug(traceback.format_exc())
+                logger.warn(err.response)
+            except Exception as err:
+                logger.debug(traceback.format_exc())
+                logger.error('Unexpected error occures!!')
+                logger.error(err)
 
 
 def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
