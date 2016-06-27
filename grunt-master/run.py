@@ -9,6 +9,9 @@ QUEUEURL = os.getenv('QUEUEURL')
 # QUEUEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
 # UPLOADBUCKET = 'container-clouds-output'
 
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
 if __name__ == '__main__':
     future_job = {'test': Queue()}
     resource = {'test': Queue()}

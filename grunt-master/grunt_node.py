@@ -14,6 +14,7 @@ for information about grunt, see https://github.com/Mayo-QIN/grunt
 '''
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 JOB_DICT = \
     {
