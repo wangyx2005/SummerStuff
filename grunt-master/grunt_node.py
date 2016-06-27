@@ -34,6 +34,32 @@ RESOURCE_DICT = \
     }
 
 
+def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
+    sqs = client('sqs', region)
+    msgs = {}
+    while True:
+        while 'Messages' not in msgs:
+            logger.debug('pull message from SQS: %s', message_URL)
+            try:
+                msgs = sqs.receive_message(QueueUrl=message_URL)
+            except botocore.exceptions.ClientError as err:
+                logger.debug(traceback.format_exc())
+                logger.warn(err.response)
+            except Exception as err:
+                logger.debug(traceback.format_exc())
+                logger.error('Unexpected error occures!!')
+                logger.error(err)
+            sleep(wait_time)
+
+        logger.info('receive ip info from SQS')
+        for msg in msgs['Messages']:
+            msg = json.loads(msg['Body'])
+            service = {}
+            service['ip'] = 'http://' + msg['ip'] + ':' + msg['port']
+            service['name'] = msg['service_name']
+            resource.put(service)
+
+
 def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
     s3 = client('s3', region)
     sqs = client('sqs', region)
