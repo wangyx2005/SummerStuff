@@ -4,9 +4,10 @@ from grunt_node import *
 import os
 
 UPLOADBUCKET = os.getenv('UPLOADBUCKET')
-QUEUEURL = os.getenv('QUEUEURL')
+FILEURL = os.getenv('FILEURL')
+IPURL = os.getenv('IPURL')
 
-# QUEUEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
+# FILEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
 # UPLOADBUCKET = 'container-clouds-output'
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,7 +21,10 @@ if __name__ == '__main__':
     service = {'ip': 'http://192.168.99.100:9901', 'name': 'test'}
     resource['test'].put(service)
 
-    t1 = threading.Thread(target=pull_files, args=(QUEUEURL, future_job))
+    t0 = threading.Thread(target=pull_service, args=(IPURL, resource))
+    t0.start()
+
+    t1 = threading.Thread(target=pull_files, args=(FILEURL, future_job))
     t1.start()
 
     t2 = threading.Thread(target=submit_processing, args=(
