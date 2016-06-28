@@ -54,7 +54,7 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
         logger.info('receive ip info from SQS')
         for msg in msgs['Messages']:
             msg = json.loads(msg['Body'])
-            
+
             # add service into resource
             service = {}
             service['ip'] = 'http://' + msg['ip'] + ':' + msg['port']
