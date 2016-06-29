@@ -37,8 +37,8 @@ RESOURCE_DICT = \
 
 def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
     sqs = client('sqs', region)
-    msgs = {}
     while True:
+        msgs = {}
         while 'Messages' not in msgs:
             logger.debug('pull message from SQS: %s', message_URL)
             try:
@@ -81,9 +81,9 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
 def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
     s3 = client('s3', region)
     sqs = client('sqs', region)
-    msgs = {}
 
     while True:
+        msgs = {}
         while 'Messages' not in msgs:
             logger.debug('pull message from SQS: %s', message_URL)
             try:
@@ -136,8 +136,8 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
 
             # delete received message
             try:
-                msgs = sqs.delete_message(QueueUrl=message_URL,
-                                          ReceiptHandle=msg['ReceiptHandle'])
+                sqs.delete_message(QueueUrl=message_URL,
+                                   ReceiptHandle=msg['ReceiptHandle'])
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
