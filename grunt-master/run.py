@@ -9,13 +9,27 @@ from _nodeconfig import *
 UPLOADBUCKET = os.getenv('UPLOADBUCKET', default=OUTPUT)
 FILEURL = os.getenv('FILEURL', default=FILEURL)
 IPURL = os.getenv('IPURL', default=IPURL)
-
+log_lvl = os.getenv('LOG_LVL', default=INFO)
 # FILEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
 # UPLOADBUCKET = 'container-clouds-output'
 
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+console = logging.StreamHandler()
+
+if log_lvl == 'ERROR':
+    console.setLevel(logging.ERROR)
+elif log_lvl == 'WARNING':
+    console.setLevel(logging.WARNING)
+elif log_lvl == 'DEBUG':
+    console.setLevel(logging.DEBUG)
+else:
+    console.setLevel(logging.INFO)
+
+console.setFormatter(formatter)
+
+logger.addHandler(console)
 
 if __name__ == '__main__':
     # future_job = {'test': Queue()}
