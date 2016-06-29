@@ -1,8 +1,19 @@
 ### Goal
-This module is a wrapper module to handle the 
+This module is a wrapper module to handle the
+
+### Environment variables
+##### Required:
+* AWS_SECRET_ACCESS_KEY:
+* AWS_ACCESS_KEY_ID:
+* NUM_SERVICE:
+##### opitional:
+* LOG_LVL: default info
+* UPLOADBUCKET:
+* IPURL: this sqs allow anyone to view/delete message
+* FILEURL: 
+
 
 ### data type
-message_URL
 
 job dict
 {
@@ -14,9 +25,11 @@ job dict
 }
 
 
-
-
 ### functions
+```
+
+```
+
 ```python
 pull_file(message_URL, future_job)
 ```

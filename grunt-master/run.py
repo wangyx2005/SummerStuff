@@ -14,7 +14,7 @@ service_num = os.getenv('NUM_SERVICES')
 
 if service_num == None:
     logging.error('Do not have environment variable NUM_SERVICES')
-    return
+    exit()
 
 # FILEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
 # UPLOADBUCKET = 'container-clouds-output'
