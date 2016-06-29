@@ -9,5 +9,6 @@ WORKDIR /data
 
 COPY grunt_node.py grunt_node.py
 COPY run.py run.py
+COPY _nodeconfig.py _nodeconfig.py
 
 CMD python run.py

@@ -1,5 +1,0 @@
-DEFAULT_REGION = 'us-east-1'
-FILEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
-IPURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/ecs-ip'
-INPUT = 'container-clouds-input'
-OUTPUT = 'container-clouds-output'
