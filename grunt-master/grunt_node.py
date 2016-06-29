@@ -35,7 +35,11 @@ RESOURCE_DICT = \
     }
 
 
-def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
+def pull_service(message_URL, resource, future_job, region='us-east-1', wait_time=30):
+    '''
+    pull service information from message_url, add serivce into resource and
+    future_job queue
+    '''
     sqs = client('sqs', region)
     while True:
         msgs = {}
@@ -64,6 +68,10 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
                 resource[service['name']] = Queue()
             resource[service['name']].put(service)
 
+            # add service into future_job
+            if service['name'] not in future_job:
+                future_job[service['name']] = Queue()
+
             # delete received message
             try:
                 sqs.delete_message(QueueUrl=message_URL,
@@ -76,11 +84,16 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
                 logger.error(
                     'Unexpected error occures when delete message at pull_service()')
                 logger.error(err)
+        break
 
 
-def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
+def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-east-1'):
     s3 = client('s3', region)
     sqs = client('sqs', region)
+
+    # wait untill all services has been registered
+    while len(future_job) < service_num:
+        sleep(wait_time)
 
     while True:
         msgs = {}
@@ -158,6 +171,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             job = future_job[service_name].get()
             result_file_name = 'Result-' + service_name + \
                 '-' + job['source_file_name']
+
             # submit job to process
             try:
                 para = {'output': result_file_name}
@@ -171,13 +185,13 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
                 logger.warn('Cannot submit job %s on service %s at %s', (job[
                             'source_file_name'], service_name, service['ip']))
                 logger.warn(err)
-                source[service_name].put(service)
+                resource[service_name].put(service)
                 future_job[service_name].put(job)
                 continue
             except FileNotFoundError as err:
                 logger.warn('Cannot find source file: %s',
                             job['source_file_path'])
-                source[service_name].put(service)
+                resource[service_name].put(service)
                 future_job[service_name].put(job)
                 continue
             except Exception as err:
