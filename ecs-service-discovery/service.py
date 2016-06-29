@@ -1,6 +1,7 @@
 import logging
 import os
 import json
+from time import sleep
 
 import boto3
 import requests
@@ -40,7 +41,7 @@ def main(myregion, mysqs):
         return
 
     # send message to sqs
-    sqs = boto3.client('sqs', region=myregion)
+    sqs = boto3.client('sqs', myregion)
     msg = {}
     msg['ip'] = ip
     msg['port'] = port
@@ -51,4 +52,5 @@ def main(myregion, mysqs):
 if __name__ == '__main__':
     myregion = os.getenv('REGION', default=DEFAULT_REGION)
     mysqs = os.getenv('IPURL', default=DEFAULT_SQS)
+    sleep(30)
     main(myregion, mysqs)
