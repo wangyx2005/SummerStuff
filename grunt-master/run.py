@@ -1,25 +1,34 @@
-import threading
-from queue import Queue
-from grunt_node import *
 import os
 
-UPLOADBUCKET = os.getenv('UPLOADBUCKET')
-FILEURL = os.getenv('FILEURL')
-IPURL = os.getenv('IPURL')
+import threading
+from queue import Queue
+
+from grunt_node import *
+from _nodeconfig import *
+
+UPLOADBUCKET = os.getenv('UPLOADBUCKET', default=OUTPUT)
+FILEURL = os.getenv('FILEURL', default=FILEURL)
+IPURL = os.getenv('IPURL', default=IPURL)
 
 # FILEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
 # UPLOADBUCKET = 'container-clouds-output'
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 if __name__ == '__main__':
-    future_job = {'test': Queue()}
-    resource = {'test': Queue()}
+    # future_job = {'test': Queue()}
+    # resource = {'test': Queue()}
+    # working_job = Queue()
+    # finished_job = Queue()
+    # service = {'ip': 'http://192.168.99.100:9901', 'name': 'test'}
+    # resource['test'].put(service)
+
+    future_job = {}
+    resource = {}
     working_job = Queue()
     finished_job = Queue()
-    service = {'ip': 'http://192.168.99.100:9901', 'name': 'test'}
-    resource['test'].put(service)
 
     t0 = threading.Thread(target=pull_service, args=(IPURL, resource))
     t0.start()
