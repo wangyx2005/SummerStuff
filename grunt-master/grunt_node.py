@@ -48,32 +48,33 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
                 logger.warn(err.response)
             except Exception as err:
                 logger.debug(traceback.format_exc())
-                logger.error('Unexpected error occures!!')
+                logger.error('Unexpected error occures at pull_service()!!')
                 logger.error(err)
             sleep(wait_time)
 
         logger.info('receive ip info from SQS')
         for msg in msgs['Messages']:
-            msg = json.loads(msg['Body'])
+            info = json.loads(msg['Body'])
 
             # add service into resource
             service = {}
-            service['ip'] = 'http://' + msg['ip'] + ':' + msg['port']
-            service['name'] = msg['service_name']
+            service['ip'] = 'http://' + info['ip'] + ':' + info['port']
+            service['name'] = info['service_name']
             if service['name'] not in resource:
                 resource[service['name']] = Queue()
             resource[service['name']].put(service)
 
             # delete received message
             try:
-                msgs = sqs.delete_message(QueueUrl=message_URL,
-                                          ReceiptHandle=msg['ReceiptHandle'])
+                sqs.delete_message(QueueUrl=message_URL,
+                                   ReceiptHandle=msg['ReceiptHandle'])
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
             except Exception as err:
                 logger.debug(traceback.format_exc())
-                logger.error('Unexpected error occures!!')
+                logger.error(
+                    'Unexpected error occures when delete message at pull_service()')
                 logger.error(err)
 
 
@@ -92,7 +93,7 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
                 logger.warn(err.response)
             except Exception as err:
                 logger.debug(traceback.format_exc())
-                logger.error('Unexpected error occures!!')
+                logger.error('Unexpected error occures at pull_files()!!')
                 logger.error(err)
             sleep(wait_time)
 
@@ -128,7 +129,8 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
                 continue
 
             # put job into future_job queue
-            logger.info('download file %s from S3 bucket', job['source_file_name'])
+            logger.info('download file %s from S3 bucket',
+                        job['source_file_name'])
             for job_queue in future_job.values():
                 job_queue.put(dict(job))
 
@@ -141,7 +143,7 @@ def pull_files(message_URL, future_job, wait_time=30, region='us-east-1'):
                 logger.warn(err.response)
             except Exception as err:
                 logger.debug(traceback.format_exc())
-                logger.error('Unexpected error occures!!')
+                logger.error('Unexpected error occures when delete message!!')
                 logger.error(err)
 
 
