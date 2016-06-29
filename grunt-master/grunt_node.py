@@ -84,7 +84,6 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
                 logger.error(
                     'Unexpected error occures when delete message at pull_service()')
                 logger.error(err)
-        break
 
 
 def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-east-1'):
@@ -92,7 +91,7 @@ def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-ea
     sqs = client('sqs', region)
 
     # wait untill all services has been registered
-    while len(future_job) < service_num:
+    while len(future_job) < int(service_num):
         sleep(wait_time)
 
     while True:
