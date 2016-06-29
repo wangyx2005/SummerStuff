@@ -2,6 +2,7 @@ import json
 import os
 import logging
 from time import sleep
+from queue import Queue
 import traceback
 
 import requests
@@ -59,7 +60,9 @@ def pull_service(message_URL, resource, region='us-east-1', wait_time=30):
             service = {}
             service['ip'] = 'http://' + msg['ip'] + ':' + msg['port']
             service['name'] = msg['service_name']
-            resource.put(service)
+            if service['name'] not in resource:
+                resource[service['name']] = Queue()
+            resource[service['name']].put(service)
 
             # delete received message
             try:
