@@ -9,7 +9,13 @@ from _nodeconfig import *
 UPLOADBUCKET = os.getenv('UPLOADBUCKET', default=OUTPUT)
 FILEURL = os.getenv('FILEURL', default=FILEURL)
 IPURL = os.getenv('IPURL', default=IPURL)
-log_lvl = os.getenv('LOG_LVL', default=INFO)
+log_lvl = os.getenv('LOG_LVL', default='INFO')
+service_num = os.getenv('NUM_SERVICES')
+
+if service_num == None:
+    logging.error('Do not have environment variable NUM_SERVICES')
+    return
+
 # FILEURL = 'https://sqs.us-east-1.amazonaws.com/183351756044/container-clouder-queue'
 # UPLOADBUCKET = 'container-clouds-output'
 
@@ -44,10 +50,12 @@ if __name__ == '__main__':
     working_job = Queue()
     finished_job = Queue()
 
-    t0 = threading.Thread(target=pull_service, args=(IPURL, resource))
+    t0 = threading.Thread(target=pull_service,
+                          args=(IPURL, resource, future_job))
     t0.start()
 
-    t1 = threading.Thread(target=pull_files, args=(FILEURL, future_job))
+    t1 = threading.Thread(target=pull_files, args=(
+        FILEURL, future_job, service_num))
     t1.start()
 
     t2 = threading.Thread(target=submit_processing, args=(
