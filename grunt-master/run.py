@@ -58,8 +58,8 @@ if __name__ == '__main__':
         FILEURL, future_job, service_num))
     t1.start()
 
-    t2 = threading.Thread(target=submit_processing, args=(
-        future_job, resource, working_job))
+    t2 = threading.Thread(target=submit_job, args=(
+        future_job, resource, working_job, service_num))
     t2.start()
 
     t3 = threading.Thread(target=check_status, args=(
