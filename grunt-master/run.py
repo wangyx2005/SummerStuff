@@ -20,7 +20,7 @@ if service_num == None:
 # UPLOADBUCKET = 'container-clouds-output'
 
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    '[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s')
 
 console = logging.StreamHandler()
 
