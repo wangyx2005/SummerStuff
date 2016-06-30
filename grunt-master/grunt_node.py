@@ -72,6 +72,7 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
             # add service into future_job
             if service['name'] not in future_job:
                 future_job[service['name']] = Queue()
+            logger.info('add service %d into Queue')
 
             # delete received message
             try:
@@ -85,6 +86,7 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
                 logger.error(
                     'Unexpected error occures when delete message at pull_service()')
                 logger.error(err)
+            logger.info('delete one message')
 
 
 def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-east-1'):
