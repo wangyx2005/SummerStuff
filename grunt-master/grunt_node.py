@@ -190,7 +190,7 @@ def submit_job(future_job, resource, working_job, service_num, wait_time=30):
             except requests.exceptions.HTTPError as err:
                 # TODO: add failed numbers for checking resource health
                 # if cannot connect to service, put back for later use
-                logger.warn('Cannot submit job %s on service %s at %s', (job[
+                logger.warn('Cannot submit job %s on service %s at %s' % (job[
                             'source_file_name'], service_name, service['ip']))
                 logger.warn(err)
                 if future_job.empty() or resource.empty():
@@ -205,7 +205,7 @@ def submit_job(future_job, resource, working_job, service_num, wait_time=30):
                 future_job[service_name].put(job)
                 continue
             except Exception as err:
-                logger.error('Unexpect error occurs on processing job %s on service %s at %s', (job[
+                logger.error('Unexpect error occurs on processing job %s on service %s at %s' % (job[
                              'source_file_name'], service_name, service['ip']))
                 logger.error(err)
                 continue
@@ -270,8 +270,8 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
             finished_job.put(job)
             continue
         except Exception as err:
-            logger.error('Unexpeced error happend in retrieve file %s from %s',
-                         (job['result_file_name'], job['ip']))
+            logger.error('Unexpeced error happend in retrieve file %s from %s'
+                         % (job['result_file_name'], job['ip']))
             logger.error(err)
             continue
         # save result at local
@@ -292,7 +292,7 @@ def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=3
             logger.debug(traceback.format_exc())
             logger.error('Unexpected error happend will upload file')
             logger.err(err)
-        logger.info('upload file %s to s3 bucket %s',
+        logger.info('upload file %s to s3 bucket %s' %
                     (job['result_file_name'], result_bucket))
 
         os.remove(job['result_file_path'])
