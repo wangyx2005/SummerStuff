@@ -7,7 +7,6 @@ import traceback
 
 import requests
 import requests.exceptions
-from boto3 import client
 import boto3.session
 import botocore.exceptions
 
@@ -41,14 +40,14 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
     pull service information from message_url, add serivce into resource and
     future_job queue
     '''
-    _session = boto3.session.Session(region_name=region)
-    _sqs = session.client('sqs')
+    session = boto3.session.Session(region_name=region)
+    sqs = session.client('sqs')
     while True:
         msgs = {}
         while 'Messages' not in msgs:
             logger.debug('pull message from SQS: %s', message_URL)
             try:
-                msgs = _sqs.receive_message(QueueUrl=message_URL)
+                msgs = sqs.receive_message(QueueUrl=message_URL)
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
@@ -76,7 +75,7 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
 
             # delete received message
             try:
-                _sqs.delete_message(QueueUrl=message_URL,
+                sqs.delete_message(QueueUrl=message_URL,
                                     ReceiptHandle=msg['ReceiptHandle'])
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
@@ -162,12 +161,19 @@ def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-ea
                 logger.error(err)
 
 
-def submit_processing(future_job, resource, working_job, wait_time=30):
+def submit_processing(future_job, resource, working_job, service_num, wait_time=30):
     # service['ip'] already contains 'http://'
+    req_ses = requests.Session()
+
+    # wait untill all services has been registered
+    while len(future_job) < int(service_num):
+        sleep(wait_time)
+
     while True:
         for service_name in resource.keys():
             if future_job[service_name].empty() \
                     or resource[service_name].empty():
+                sleep(wait_time)
                 continue
             service = resource[service_name].get()
             job = future_job[service_name].get()
@@ -178,7 +184,7 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             try:
                 para = {'output': result_file_name}
                 file = {'input': open(job['source_file_path'], 'rb')}
-                response = requests.post(
+                response = req_ses.post(
                     service['ip'] + '/rest/service/runJob', files=file, data=para)
                 response.raise_for_status()
             except requests.exceptions.HTTPError as err:
@@ -187,6 +193,8 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
                 logger.warn('Cannot submit job %s on service %s at %s', (job[
                             'source_file_name'], service_name, service['ip']))
                 logger.warn(err)
+                if future_job.empty() or resource.empty():
+                    sleep(wait_time)
                 resource[service_name].put(service)
                 future_job[service_name].put(job)
                 continue
@@ -209,16 +217,15 @@ def submit_processing(future_job, resource, working_job, wait_time=30):
             job['result_file_path'] = 'result/' + result_file_name
             job['service_name'] = service['name']
             working_job.put(job)
-        # wait after each round is finished
-        sleep(wait_time)
 
 
 def check_status(working_job, finished_job, resource, future_job, wait_time=180):
+    req_ses = requests.Session()
     while True:
         job = working_job.get()
         # check status
         try:
-            status = requests.get(job['ip'] + '/rest/job/' + job['job_id'])
+            status = req_ses.get(job['ip'] + '/rest/job/' + job['job_id'])
             status.raise_for_status()
         except requests.exceptions.HTTPError as err:
             logger.warn(err)
@@ -251,11 +258,12 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
 def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
     session = boto3.session.Session(region_name=region)
     s3 = session.client('s3', region)
+    req_ses = requests.Session()
     while True:
         job = finished_job.get()
         url = job['ip'] + '/rest/job/' + job['job_id'] + '/file/output'
         try:
-            result = requests.get(url, stream=True)
+            result = req_ses.get(url, stream=True)
             result.raise_for_status()
         except requests.exceptions.HTTPError as err:
             logger.warn(err)
