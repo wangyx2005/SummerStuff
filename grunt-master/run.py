@@ -9,7 +9,7 @@ from _nodeconfig import *
 UPLOADBUCKET = os.getenv('UPLOADBUCKET', default=OUTPUT)
 FILEURL = os.getenv('FILEURL', default=FILEURL)
 IPURL = os.getenv('IPURL', default=IPURL)
-log_lvl = os.getenv('LOG_LVL', default='INFO')
+log_lvl = os.getenv('LOG_LVL', default='WARNING')
 service_num = os.getenv('NUM_SERVICES')
 
 if service_num == None:
@@ -26,12 +26,12 @@ console = logging.StreamHandler()
 
 if log_lvl == 'ERROR':
     console.setLevel(logging.ERROR)
-elif log_lvl == 'WARNING':
-    console.setLevel(logging.WARNING)
+elif log_lvl == 'INFO':
+    console.setLevel(logging.INFO)
 elif log_lvl == 'DEBUG':
     console.setLevel(logging.DEBUG)
 else:
-    console.setLevel(logging.INFO)
+    console.setLevel(logging.WARNING)
 
 console.setFormatter(formatter)
 
