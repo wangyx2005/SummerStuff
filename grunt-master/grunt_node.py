@@ -161,7 +161,7 @@ def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-ea
                 logger.error(err)
 
 
-def submit_processing(future_job, resource, working_job, service_num, wait_time=30):
+def submit_job(future_job, resource, working_job, service_num, wait_time=30):
     # service['ip'] already contains 'http://'
     req_ses = requests.Session()
 
