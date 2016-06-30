@@ -34,8 +34,11 @@ RESOURCE_DICT = \
         'name': ''
     }
 
+WAITTIME = os.getenv('WAITTIME', default=5)
+STREAM_SIZE = os.getenv('STREAM_SIZE', default=32)
 
-def pull_service(message_URL, resource, future_job, region='us-east-1', wait_time=30):
+
+def pull_service(message_URL, resource, future_job, region='us-east-1', wait_time=WAITTIME):
     '''
     pull service information from message_url, add serivce into resource and
     future_job queue
@@ -55,7 +58,8 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
                 logger.debug(traceback.format_exc())
                 logger.error('Unexpected error occures at pull_service()!!')
                 logger.error(err)
-            sleep(wait_time)
+            if 'Messages' not in msgs:
+                sleep(wait_time)
 
         logger.info('receive ip info from SQS')
         for msg in msgs['Messages']:
@@ -68,16 +72,16 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
             if service['name'] not in resource:
                 resource[service['name']] = Queue()
             resource[service['name']].put(service)
+            logger.info('add service %d into resource', service['name'])
 
             # add service into future_job
             if service['name'] not in future_job:
                 future_job[service['name']] = Queue()
-            logger.info('add service %d into Queue')
 
             # delete received message
             try:
                 sqs.delete_message(QueueUrl=message_URL,
-                                    ReceiptHandle=msg['ReceiptHandle'])
+                                   ReceiptHandle=msg['ReceiptHandle'])
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
@@ -86,10 +90,10 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
                 logger.error(
                     'Unexpected error occures when delete message at pull_service()')
                 logger.error(err)
-            logger.info('delete one message')
+            logger.info('delete one message from ip_queue')
 
 
-def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-east-1'):
+def pull_files(message_URL, future_job, service_num, wait_time=WAITTIME, region='us-east-1'):
     session = boto3.session.Session(region_name=region)
     s3 = session.client('s3', region)
     sqs = session.client('sqs', region)
@@ -111,7 +115,8 @@ def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-ea
                 logger.debug(traceback.format_exc())
                 logger.error('Unexpected error occures at pull_files()!!')
                 logger.error(err)
-            sleep(wait_time)
+            if 'Messages' not in msgs:
+                sleep(wait_time)
 
         logger.info('receive file info from SQS')
         for msg in msgs['Messages']:
@@ -149,6 +154,7 @@ def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-ea
                         job['source_file_name'])
             for job_queue in future_job.values():
                 job_queue.put(dict(job))
+                logger.info('add job to future_job queue')
 
             # delete received message
             try:
@@ -161,9 +167,10 @@ def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-ea
                 logger.debug(traceback.format_exc())
                 logger.error('Unexpected error occures when delete message!!')
                 logger.error(err)
+            logger.info('delete one message from file queue')
 
 
-def submit_job(future_job, resource, working_job, service_num, wait_time=30):
+def submit_job(future_job, resource, working_job, service_num, wait_time=WAITTIME):
     # service['ip'] already contains 'http://'
     req_ses = requests.Session()
 
@@ -175,7 +182,6 @@ def submit_job(future_job, resource, working_job, service_num, wait_time=30):
         for service_name in resource.keys():
             if future_job[service_name].empty() \
                     or resource[service_name].empty():
-                sleep(wait_time)
                 continue
             service = resource[service_name].get()
             job = future_job[service_name].get()
@@ -195,8 +201,6 @@ def submit_job(future_job, resource, working_job, service_num, wait_time=30):
                 logger.warn('Cannot submit job %s on service %s at %s' % (job[
                             'source_file_name'], service_name, service['ip']))
                 logger.warn(err)
-                if future_job.empty() or resource.empty():
-                    sleep(wait_time)
                 resource[service_name].put(service)
                 future_job[service_name].put(job)
                 continue
@@ -212,6 +216,9 @@ def submit_job(future_job, resource, working_job, service_num, wait_time=30):
                 logger.error(err)
                 continue
 
+            logger.info('submit job %s to service %s at %s' %
+                        (job['source_file_name'], service_name, service['ip']))
+
             # put successful job into working job
             job['job_id'] = response.json()['uuid']
             job['ip'] = service['ip']
@@ -219,9 +226,12 @@ def submit_job(future_job, resource, working_job, service_num, wait_time=30):
             job['result_file_path'] = 'result/' + result_file_name
             job['service_name'] = service['name']
             working_job.put(job)
+            logger.info('add a job to working_job queue')
+
+        sleep(wait_time)
 
 
-def check_status(working_job, finished_job, resource, future_job, wait_time=180):
+def check_status(working_job, finished_job, resource, future_job, wait_time=WAITTIME):
     req_ses = requests.Session()
     while True:
         job = working_job.get()
@@ -244,9 +254,13 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
             service['name'] = job['service_name']
             service['ip'] = job['ip']
             resource[service['name']].put(service)
+            logger.info('job %s finished on service %s at %s' %
+                        (job['source_file_name'], job['service_name'], service['ip']))
         # TODO: check the running status
         elif status.json()['status'] == 'running':
             working_job.put(job)
+            logger.debug('job %s finished on service %s at %s' %
+                         (job['source_file_name'], job['service_name'], service['ip']))
         # restart the job
         else:
             future_job[job['service_name']].put(job)
@@ -257,10 +271,11 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
         sleep(wait_time / (size + 1))
 
 
-def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
+def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=STREAM_SIZE):
     session = boto3.session.Session(region_name=region)
     s3 = session.client('s3', region)
     req_ses = requests.Session()
+
     while True:
         job = finished_job.get()
         url = job['ip'] + '/rest/job/' + job['job_id'] + '/file/output'
