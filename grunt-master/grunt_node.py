@@ -8,6 +8,7 @@ import traceback
 import requests
 import requests.exceptions
 from boto3 import client
+import boto3.session
 import botocore.exceptions
 
 '''
@@ -40,13 +41,14 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
     pull service information from message_url, add serivce into resource and
     future_job queue
     '''
-    sqs = client('sqs', region)
+    _session = boto3.session.Session(region_name=region)
+    _sqs = session.client('sqs')
     while True:
         msgs = {}
         while 'Messages' not in msgs:
             logger.debug('pull message from SQS: %s', message_URL)
             try:
-                msgs = sqs.receive_message(QueueUrl=message_URL)
+                msgs = _sqs.receive_message(QueueUrl=message_URL)
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
@@ -74,8 +76,8 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
 
             # delete received message
             try:
-                sqs.delete_message(QueueUrl=message_URL,
-                                   ReceiptHandle=msg['ReceiptHandle'])
+                _sqs.delete_message(QueueUrl=message_URL,
+                                    ReceiptHandle=msg['ReceiptHandle'])
             except botocore.exceptions.ClientError as err:
                 logger.debug(traceback.format_exc())
                 logger.warn(err.response)
@@ -87,8 +89,9 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
 
 
 def pull_files(message_URL, future_job, service_num, wait_time=30, region='us-east-1'):
-    s3 = client('s3', region)
-    sqs = client('sqs', region)
+    session = boto3.session.Session(region_name=region)
+    s3 = session.client('s3', region)
+    sqs = session.client('sqs', region)
 
     # wait untill all services has been registered
     while len(future_job) < int(service_num):
@@ -246,7 +249,8 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=180)
 
 
 def upload_result(finished_job, result_bucket, region='us-east-1', stream_size=32):
-    s3 = client('s3', region)
+    session = boto3.session.Session(region_name=region)
+    s3 = session.client('s3', region)
     while True:
         job = finished_job.get()
         url = job['ip'] + '/rest/job/' + job['job_id'] + '/file/output'
