@@ -15,7 +15,16 @@ for information about grunt, see https://github.com/Mayo-QIN/grunt
 '''
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+log_lvl = os.getenv('LOG_LVL', default='WARNING')
+
+if log_lvl == 'ERROR':
+    logger.setLevel(logging.ERROR)
+elif log_lvl == 'INFO':
+    logger.setLevel(logging.INFO)
+elif log_lvl == 'DEBUG':
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.WARNING)
 
 JOB_DICT = \
     {
