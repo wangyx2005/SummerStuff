@@ -72,7 +72,7 @@ def pull_service(message_URL, resource, future_job, region='us-east-1', wait_tim
             if service['name'] not in resource:
                 resource[service['name']] = Queue()
             resource[service['name']].put(service)
-            logger.info('add service %d into resource', service['name'])
+            logger.info('add service %s into resource', service['name'])
 
             # add service into future_job
             if service['name'] not in future_job:
@@ -259,8 +259,8 @@ def check_status(working_job, finished_job, resource, future_job, wait_time=WAIT
         # TODO: check the running status
         elif status.json()['status'] == 'running':
             working_job.put(job)
-            logger.debug('job %s finished on service %s at %s' %
-                         (job['source_file_name'], job['service_name'], service['ip']))
+            logger.debug('job %s running on service %s' %
+                         (job['source_file_name'], job['service_name']))
         # restart the job
         else:
             future_job[job['service_name']].put(job)
