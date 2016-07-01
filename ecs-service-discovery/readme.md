@@ -7,3 +7,9 @@ SERVICE_NAME
 IPURL (optional)
 REGION (optional)
 
+message form:
+{
+    'ip': 'XXX.XXX.XXX.XX',
+    'port': '9901',
+    'service_name':
+}
