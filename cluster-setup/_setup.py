@@ -88,11 +88,18 @@ def start_node(node_name, node_dict={}):
 
 def start_by_name(node_name):
     nodes = [node for node in conn.list_nodes() if node.name == node_name]
+    running_node = []
     for node in nodes:
         if node.state == NodeState.STOPPED:
             conn.ex_start_node(node)
-    for node in nodes:
-        _wait_for_state(node, 'RUNNING')
+            running_node.append(node)
+        if node.state == NodeState.RUNNING:
+            running_node.append(node)
+    nodes = conn.wait_until_running(running_node)
+    # for node in nodes:
+    #     if node.state == NodeState.TERMINATED:
+    #         continue
+    #     # _wait_for_state(node, 'RUNNING')
     return nodes
 
 
@@ -102,8 +109,10 @@ def stop_by_name(node_name):
         if node.state == NodeState.TERMINATED:
             continue
         conn.ex_stop_node(node)
-    for node in nodes:
-        _wait_for_state(node, 'STOPPED')
+    # for node in nodes:
+    #     if node.state == NodeState.TERMINATED:
+    #         continue
+    #     _wait_for_state(node, 'STOPPED')
     return nodes
 
 
@@ -113,8 +122,6 @@ def _wait_for_state(node, state):
     '''
     # buggy
     while True:
-        if node.state == NodeState.TERMINATED:
-            break
         if node.state == NodeState.RUNNING and state == 'RUNNING':
             break
         if node.state == NodeState.STOPPED and state == 'STOPPED':
