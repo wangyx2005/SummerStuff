@@ -91,8 +91,8 @@ def start_by_name(node_name):
     for node in nodes:
         if node.state == NodeState.STOPPED:
             conn.ex_start_node(node)
-    # for node in nodes:
-    #     _wait_for_state(node, 'RUNNING')
+    for node in nodes:
+        _wait_for_state(node, 'RUNNING')
     return nodes
 
 
