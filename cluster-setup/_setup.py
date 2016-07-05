@@ -92,7 +92,7 @@ def start_by_name(node_name):
         if node.state == NodeState.STOPPED:
             conn.ex_start_node(node)
     # for node in nodes:
-    #     _wait_for_state(node, RUNNING)
+    #     _wait_for_state(node, 'RUNNING')
     return nodes
 
 
@@ -103,7 +103,7 @@ def stop_by_name(node_name):
             continue
         conn.ex_stop_node(node)
     for node in nodes:
-        _wait_for_state(node, RUNNING)
+        _wait_for_state(node, 'STOPPED')
     return nodes
 
 
@@ -111,7 +111,10 @@ def _wait_for_state(node, state):
     '''
     state includes running, stopped, terminated
     '''
+    # buggy
     while True:
+        if node.state == NodeState.TERMINATED:
+            break
         if node.state == NodeState.RUNNING and state == 'RUNNING':
             break
         if node.state == NodeState.STOPPED and state == 'STOPPED':
