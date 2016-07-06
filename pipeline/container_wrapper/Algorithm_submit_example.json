@@ -1,0 +1,18 @@
+{
+    "container_name": "change123",
+    "system": "ubuntu",
+    "input_file_path": "/",
+    "output_file_path": "/result",
+    "executable_path": "/change123",
+    "run_command": "sh /change123 $input",
+    "Memory": 
+    {
+        "minimal": "50",
+        "suggested": "128"
+    },
+    "CPU":
+    {
+
+    },
+    "user_specified_environment_variables": ["",""]
+}
