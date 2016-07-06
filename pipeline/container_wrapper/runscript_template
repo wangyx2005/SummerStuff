@@ -11,14 +11,14 @@ import botocore.exceptions
 UPLOADBUCKET = os.getenv('UPLOADBUCKET')
 QUEUEURL = os.getenv('QUEUEURL')
 REGION = os.getenv('REGION')
-NAME = os.getenv('NAME', default=%(name)s)
+NAME = os.getenv('NAME', default='%(name)s')
 
 # user define if want to zip the result file
 NEED_ZIP = os.getenv('ZIP', default='True')
 
 # get input/output file location
-INPUT_PATH = %(input)s
-OUTPUT_PATH = %(output)s
+INPUT_PATH = '%(input)s'
+OUTPUT_PATH = '%(output)s'
 
 
 logger = logging.getLogger()
@@ -43,7 +43,7 @@ def pull_files(message_URL):
     sqs = session.client('sqs')
     msgs = {}
     while 'Messages' not in msgs:
-        logger.debug('pull message from SQS: %s', message_URL)
+        logger.debug('pull message from SQS: {}'.format(message_URL))
         try:
             msgs = sqs.receive_message(QueueUrl=message_URL)
         except botocore.exceptions.ClientError as err:
@@ -112,7 +112,7 @@ def download_file(bucket, file, msg):
         # put the failed file info back to sqs
         logger.warn(err)
         logger.debug(traceback.format_exc())
-        logger.debug('message content: %s', json.dumps(msg))
+        logger.debug('message content: {}'.format(json.dumps(msg)))
         logger.info('put message back to SQS for later try')
         try:
             sqs.send_message(QueueUrl=message_URL,
