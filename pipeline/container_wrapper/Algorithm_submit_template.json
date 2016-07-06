@@ -5,6 +5,7 @@
     "output_file_path": "",         // all output files will be put in here, zipped and upload
     "executable": "",               // 
     "run_command": "",              // use $input for input_file_path
+    "name": "",                     // build with this name
     "Memory": 
     {
         "minimal": "",
