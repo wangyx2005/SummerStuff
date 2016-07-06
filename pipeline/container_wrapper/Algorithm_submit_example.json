@@ -5,6 +5,7 @@
     "output_file_path": "/result",
     "executable_path": "/change123",
     "run_command": "sh /change123 $input",
+    "name": "change123-s3",
     "Memory": 
     {
         "minimal": "50",
