@@ -1,10 +1,10 @@
 {
     "container_name": "",           // reachable from docker build
-    "system": "",                   // the system 
-    "input_file_path": "",          // an exist folder input file will be put
+    "system": "",                   // the system: ubuntu 
+    "input_file_path": "",          // an exist folder input file will be put, end with '/'
     "output_file_path": "",         // all output files will be put in here, zipped and upload
     "executable": "",               // 
-    "run_command": "",              // use $input for input, $output for output
+    "run_command": "",              // use $input for input_file_path
     "Memory": 
     {
         "minimal": "",
