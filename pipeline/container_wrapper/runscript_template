@@ -125,7 +125,7 @@ def download_file(bucket, file, msg):
 
 
 def run_program(input_file):
-    command = %(command)s
+    command = '%(command)s'
     run_command = command.split()
     for i in range(len(run_command)):
         if run_command[i] == '$input':
