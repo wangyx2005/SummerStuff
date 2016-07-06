@@ -31,7 +31,7 @@ else:
 
 def pull_files(message_URL):
     '''
-    
+    pull message form message_URL
     '''
     session = boto3.session.Session(region_name=REGION)
     s3 = session.client('s3')
