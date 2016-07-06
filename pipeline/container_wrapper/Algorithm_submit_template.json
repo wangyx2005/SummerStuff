@@ -1,0 +1,18 @@
+{
+    "container_name": "",           // reachable from docker build
+    "system": "",                   // the system 
+    "input_file_path": "",          // an exist folder input file will be put
+    "output_file_path": "",         // all output files will be put in here, zipped and upload
+    "executable": "",               // 
+    "run_command": "",              // use $input for input, $output for output
+    "Memory": 
+    {
+        "minimal": "",
+        "suggested": "",
+    },
+    "CPU":
+    {
+
+    },
+    "user_specified_environment_variables": ["",""]
+}
