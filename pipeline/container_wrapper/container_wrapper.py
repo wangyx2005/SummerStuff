@@ -4,7 +4,7 @@ import sys
 SUPPORTED_SYSTEM = {'ubuntu'}
 
 
-def generate_dockerfile(system_name, container_name):
+def _generate_dockerfile(system_name, container_name):
     if system_name == 'ubuntu':
         with open('ubuntu_wrapper', 'r') as myfile:
             dockerfile = myfile.read()
@@ -15,7 +15,7 @@ def show_dockerfile(system_name, container_name):
     print(generate_dockerfile(system_name, container_name))
 
 
-def generate_runscript(input_path, output_path, name, command):
+def _generate_runscript(input_path, output_path, name, command):
     with open('runscript_template', 'r') as myfile:
         script = myfile.read()
     return script % {'input': input_path, 'output': output_path, 'name': name, 'command': command}
@@ -52,6 +52,20 @@ def wrapper(alg_info):
         tmpfile.write(dockerfile)
 
     return dockerfile_name
+
+
+def _generate_image(dockerfile_name):
+    '''
+    build new docker image and upload, return new images
+    '''
+    # TODO:
+
+
+def _generate_image_info():
+    '''
+    generate wrapped image info for ecs task
+    '''
+    # TODO:
 
 
 if __name__ == '__main__':
