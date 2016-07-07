@@ -15,5 +15,11 @@
     {
 
     },
-    "user_specified_environment_variables": ["",""]
+    "user_specified_environment_variables": 
+    [
+        {
+            "name": "",
+            "required": ""
+        },
+    ]
 }
