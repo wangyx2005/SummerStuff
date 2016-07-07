@@ -5,15 +5,15 @@ from haikunator import Haikunator
 
 name_generator = Haikunator()
 
+
 # SQS related
 
 def _get_or_create_queue(name):
     '''
     get queue by name, if the queue doesnot exist, create one.
-
     rtype: sqs.Queue
     '''
-    resource = boto3.resource('sqs')
+    resource = boto3.resource('sqs', )
     if _is_sqs_exist(name):
         return resource.get_queue_by_name(QueueName=name)
     else:
@@ -23,8 +23,8 @@ def _get_or_create_queue(name):
 def _is_sqs_exist(name):
     '''
     check existense of a given queue
-    name:
-
+    para: name: sqs name
+    type: string
     '''
     queues = boto3.client('sqs').list_queues()
     for queue in queues['QueueUrls']:
@@ -60,5 +60,69 @@ def _add_permission(queue, account_id):
 
 
 # S3
+S3_EVENT_CONFIGURATIONS = '''
+%(config_name)s: [
+    {
+        'LambdaFunctionArn': %(FunctionArn)s,
+        'Events': [
+            's3:ObjectCreated:*'
+        ],
+    },
+]
+'''
 
-def _is
+
+def _is_s3_exist(name):
+    '''
+    check for existense
+    '''
+    s3 = boto3.client('s3')
+    for bucket in s3.list_buckets()['Buckets']:
+        if name == bucket['Name']:
+            return True
+    return False
+
+
+def get_or_create_s3(name):
+    '''
+    create s3 bucket if not existed
+    '''
+    if not _is_s3_exist(name):
+        boto3.client('s3').create_bucket(Bucket=name)
+        print('create s3 bucket %s.' % name)
+    else:
+        print('find s3 bucket %s.' % name)
+
+
+def _set_event(name, event_arn, option):
+    '''
+    set s3 create object to event notification.
+    para: name: s3 bucket name
+    type: string
+    para: event_arn: arn of the event source
+    type: string
+    para: option: one of these 'lambda', 'sqs', 'sns'
+    type: string
+    '''
+    if option == 'lambda':
+        config = S3_EVENT_CONFIGURATIONS % {
+            'FunctionArn': event_arn, 'config_name': 'LambdaFunctionConfigurations'}
+    elif option == 'sqs':
+        config = S3_EVENT_CONFIGURATIONS % {
+            'FunctionArn': event_arn, 'config_name': 'QueueConfigurations'}
+    elif option == 'sqs':
+        config = S3_EVENT_CONFIGURATIONS % {
+            'FunctionArn': event_arn, 'config_name': 'TopicConfigurations'}
+    else:
+        print('option needs to be one of the following three: labmda, sqs, sns')
+        return
+
+    print(config)
+
+    boto3.client('s3').put_bucket_nofification_configuration(
+        Bucket=name, NotificationConfiguration=config)
+
+    print('finish setup s3 bucket %s event notification' % name)
+
+
+# lambda
