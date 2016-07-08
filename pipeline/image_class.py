@@ -5,7 +5,7 @@ from haikunator import Haikunator
 name_generator = Haikunator()
 
 
-class image_info:
+class image:
     class port:
         def __init__(self, port_info):
             '''
@@ -57,7 +57,7 @@ class image_info:
         for var in info['user_specified_environment_variables']:
             self.env_variable[var['name']] = self.variable(var)
 
-    def init_all_variables(self, info):
+    def init_all_variables(self, info, credentials):
         '''
         Based on the user information provided, initialize all the entries
         para info:
@@ -66,7 +66,10 @@ class image_info:
         for port_number in info['port']:
             self.port[port_number].add_default_port_mapping()
 
-        for name, value in info['variables']:
+        for name, value in info['variables'].iteritems():
+            self.env_variable[name].init_var(value)
+
+        for name, value in credentials.iteritems():
             self.env_variable[name].init_var(value)
 
     def valid_info(self):
@@ -93,3 +96,24 @@ class image_info:
         helper['name'] = var_name
         helper['required'] = True
         self.env_variable[var_name] = self.variable(helper)
+
+    def generate_task(self):
+        with open('ecs_task_definition_template.json', 'r') as tmpfile:
+            template = json.load(tmpfile)
+        template['containerDefinitions'][0]['memory'] = self.memory
+        template['containerDefinitions'][0]['name'] = self.name
+        template['containerDefinitions'][0]['image'] = self.image
+        # TODO: change 32
+        template['containerDefinitions'][0]['cpu'] = 32
+        # add port
+        for port in self.port.values():
+            helper = {}
+            helper['hostPort'] = port.host_port
+            helper['containerPort'] = port.container_port
+            helper['protocol'] = port.protocol
+            template['containerDefinitions'][0]['port'].append(helper)
+        # add environment variable
+        for var in self.env_variable.iteritems():
+            template['containerDefinitions'][0][
+                'environment'][var['name']] = var['value']
+        template['family'] = self.name + '-' + name_generator.haikunate()
