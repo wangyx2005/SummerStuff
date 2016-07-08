@@ -21,5 +21,12 @@
             "name": "",
             "required": ""
         },
+    ],
+    "port": 
+    [
+        {
+            "port": "",
+            "protocol": ""
+        }
     ]
 }
