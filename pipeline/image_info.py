@@ -30,8 +30,6 @@ class image_info:
             self.value = value
             self.initialized = True
 
-
-
     def __init__(self, info):
         '''
         para info:
@@ -45,12 +43,12 @@ class image_info:
         self.env_variable = {}
 
         for port_info in info['port']:
-            self.port[port_info['port']] = port(port_info)
+            self.port[port_info['port']] = self.port(port_info)
 
         for var in info['user_specified_environment_variables']:
-            self.env_variable[var['name']] = variable(var)
+            self.env_variable[var['name']] = self.variable(var)
 
-    def init_all_variables():
+    def init_all_variables(info):
         pass
 
     def add_required_variable(self, var_name):
@@ -58,4 +56,7 @@ class image_info:
         para vars: a list of required variables
         type: list
         '''
-        self.env_variable[var_name] = variables()
+        helper = {}
+        helper['name'] = var_name
+        helper['required'] = True
+        self.env_variable[var_name] = self.variable(helper)
