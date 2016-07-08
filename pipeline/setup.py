@@ -131,14 +131,28 @@ def _set_event(name, event_arn, option):
 
 
 # ecs
-def _generate_task_definition(image_info, user_info, crendial):
+def _generate_task_definition(image_info, user_info, credentials):
     '''
     Based on the algorithm information and the user running information,
     generate task definition
     para image_info: all the required info for running the docker container
     type: image_info class
     para: user_info: passed in information about using the algorithm.
+    user_info: {'port' : [], 'variables' = {}}
     type: json
-    
+
     rtype json
     '''
+    image_info.init_all_variables(user_info, credentials)
+    task_def = image_info.generate_task()
+    task = boto3.client('ecs').register_task_definition(family=task_def[
+        'family'], containerDefinitions=task_def['containerDefinitions'])
+    return task
+
+
+def _delete_task_definition(task):
+    # should be wrong
+    boto3.client('ecs').deregister_task_definition(taskDefinition=task)
+
+
+# 
