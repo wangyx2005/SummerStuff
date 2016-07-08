@@ -1,5 +1,9 @@
 import json
 
+from haikunator import Haikunator
+
+name_generator = Haikunator()
+
 
 class image_info:
     class port:
@@ -26,6 +30,10 @@ class image_info:
             self.required = var['required']
             self.value = None
 
+            # TODO
+            def valid_entry():
+                pass
+
         def init_var(self, value):
             self.value = value
             self.initialized = True
@@ -38,7 +46,8 @@ class image_info:
         self.memory = info['memory']['suggested']
         self.name = info['name']
         self.image = info['image']
-        self.cpu = None
+        # TODO: this need to be changed
+        self.cpu = 32
         self.port = {}
         self.env_variable = {}
 
@@ -49,7 +58,26 @@ class image_info:
             self.env_variable[var['name']] = self.variable(var)
 
     def init_all_variables(info):
+        '''
+        Based on the user information provided, initialize all the entries
+        para info:
+        type: json
+        '''
         pass
+
+    def valid_info(self):
+        '''
+        check if such initialization is vaild. Namely, check if all required
+        variable has been initializaed, if every variable meet its requirement.
+
+        rtype: boolean
+        '''
+        for name, var in self['env_variable'].iteritems():
+            if not var.vaild_entry():
+                return False
+            if var.required and var.initializaed:
+                print("envoriment variable %s needs to be initialized", name)
+                return False
 
     def add_required_variable(self, var_name):
         '''
