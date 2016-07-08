@@ -8,8 +8,8 @@
     "name": "change123-s3",
     "Memory": 
     {
-        "minimal": "50",
-        "suggested": "128"
+        "minimal": 50,
+        "suggested": 128
     },
     "CPU":
     {

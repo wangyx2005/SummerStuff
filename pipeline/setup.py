@@ -3,6 +3,8 @@ import json
 import boto3
 from haikunator import Haikunator
 
+from image_class import image_info
+
 name_generator = Haikunator()
 
 
@@ -126,3 +128,17 @@ def _set_event(name, event_arn, option):
 
 
 # lambda
+
+
+# ecs
+def _generate_task_definition(image_info, user_info, crendial):
+    '''
+    Based on the algorithm information and the user running information,
+    generate task definition
+    para image_info: all the required info for running the docker container
+    type: image_info class
+    para: user_info: passed in information about using the algorithm.
+    type: json
+    
+    rtype json
+    '''
