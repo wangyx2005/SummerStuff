@@ -57,13 +57,17 @@ class image_info:
         for var in info['user_specified_environment_variables']:
             self.env_variable[var['name']] = self.variable(var)
 
-    def init_all_variables(info):
+    def init_all_variables(self, info):
         '''
         Based on the user information provided, initialize all the entries
         para info:
         type: json
         '''
-        pass
+        for port_number in info['port']:
+            self.port[port_number].add_default_port_mapping()
+
+        for name, value in info['variables']:
+            self.env_variable[name].init_var(value)
 
     def valid_info(self):
         '''
