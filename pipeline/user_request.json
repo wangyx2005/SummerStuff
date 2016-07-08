@@ -1,0 +1,19 @@
+{
+    "input_s3_name": "",
+    "output_s3_name": "",
+    "process": 
+    {
+        "type": "singe_run",
+        algoriths:
+        [
+            {
+                "name": "",
+                "port": [],
+                "variables":
+                {
+                    name: value,
+                }
+            }
+        ]
+    } 
+}
