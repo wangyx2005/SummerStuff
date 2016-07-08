@@ -85,15 +85,17 @@ def _is_s3_exist(name):
     return False
 
 
-def get_or_create_s3(name):
+def _get_or_create_s3(name):
     '''
     create s3 bucket if not existed
+    rtype: string
     '''
     if not _is_s3_exist(name):
         boto3.client('s3').create_bucket(Bucket=name)
         print('create s3 bucket %s.' % name)
     else:
         print('find s3 bucket %s.' % name)
+    return name
 
 
 def _set_event(name, event_arn, option):
@@ -155,4 +157,31 @@ def _delete_task_definition(task):
     boto3.client('ecs').deregister_task_definition(taskDefinition=task)
 
 
-# 
+# utilities for setting up the whole thing
+def get_image_info(name):
+    '''
+    based on the name of the user request, find the image inforomation
+
+    rtype: json
+    '''
+
+
+def pipeline_setup(user_request):
+    '''
+    based on the user request, set up the whole thing.
+    '''
+    # set sqs
+    sqs_name = name_generator.haikunate()
+    sqs = _get_or_create_queue(sqs_name)
+
+    # set lambda
+
+    # set s3
+    input_s3 = _get_or_create_s3(user_request['input_s3_name'])
+    _set_event(input_s3, lambda_arn, 'lambda')
+
+    output_s3 = _get_or_create_s3(user_request['output_s3_name'])
+    print('You will get your result at %s', output_s3)
+
+    # finish setup
+    print('You can start upload files')
