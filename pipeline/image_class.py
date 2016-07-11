@@ -4,6 +4,8 @@ from haikunator import Haikunator
 
 name_generator = Haikunator()
 
+# TODO: add instance_type
+
 
 class image:
     class port:
@@ -66,10 +68,10 @@ class image:
         for port_number in info['port']:
             self.port[port_number].add_default_port_mapping()
 
-        for name, value in info['variables'].iteritems():
+        for name, value in info['variables'].items():
             self.env_variable[name].init_var(value)
 
-        for name, value in credentials.iteritems():
+        for name, value in credentials.items():
             self.env_variable[name].init_var(value)
 
     def valid_info(self):
@@ -79,7 +81,7 @@ class image:
 
         rtype: boolean
         '''
-        for name, var in self['env_variable'].iteritems():
+        for name, var in self['env_variable'].items():
             if not var.vaild_entry():
                 return False
             if var.required and var.initializaed:
@@ -118,7 +120,7 @@ class image:
             helper['protocol'] = port.protocol
             template['containerDefinitions'][0]['port'].append(helper)
         # add environment variable
-        for var in self.env_variable.iteritems():
+        for var in self.env_variable.items():
             template['containerDefinitions'][0][
                 'environment'][var['name']] = var['value']
         template['family'] = self.name + '-' + name_generator.haikunate()
