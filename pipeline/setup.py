@@ -131,6 +131,19 @@ def _set_event(name, event_arn, option):
 
 # lambda
 
+def _generate_lambda(key_pair, image, sys_info):
+    '''
+    generate lambda function using lambda_run_task_template
+    para: image: the informations about using a image
+    type: image_class.image_info
+
+    para:
+    '''
+    lambda_para = {}
+    lambda_para['image_id'] = ''
+    lambda_para['key_pair'] = key_pair
+    lambda_para['instance_type'] = image.instance_type
+
 
 # ecs
 def _generate_task_definition(image_info, user_info, credentials):
@@ -154,6 +167,7 @@ def _generate_task_definition(image_info, user_info, credentials):
 
 def _delete_task_definition(task):
     # should be wrong
+    # TODO: find the correct way to delete task
     boto3.client('ecs').deregister_task_definition(taskDefinition=task)
 
 
@@ -161,20 +175,71 @@ def _delete_task_definition(task):
 def get_image_info(name):
     '''
     based on the name of the user request, find the image inforomation
+    para name: algorithm name
+    type: string
 
-    rtype: json
+    rpara: the infomation of a algorithm, see 
+    rtype: image_class.image_info
     '''
+    file_name = name + '-docker.json'
+    with open('algorithms/' + file_name, 'r') as tmpfile:
+        info = image_info(tmpfile)
+    return info
+
+
+def _get_sys_info():
+    '''
+    prepare the system information including ec2 image_id, key_pair,
+    security_group, subnet_id, iam_name.
+
+    rtype dict
+    '''
+    # TODO: need rewrite this function    
+    info = {}
+    info['image_id'] = 'ami-8f7687e2'
+    info['iam_name'] = 'ecsInstanceRole'
+    info['subnet_id'] = 'subnet-d32725fb'
+    info['security_group'] = 'launch-wizard-13'
+    return info
 
 
 def pipeline_setup(user_request):
     '''
     based on the user request, set up the whole thing.
+    user_request
+    {
+        "name": "",
+        "port": [],
+        "input_s3_name": "",
+        "output_s3_name": "",
+        "key_pair": "",
+        "variables":
+        {
+            "name": "value"
+        }
+    }
+
     '''
     # set sqs
     sqs_name = name_generator.haikunate()
     sqs = _get_or_create_queue(sqs_name)
 
+    # set ecs task
+    if user_request['process']['type'] == 'single_run':
+        image = get_image_info(user_request['process'][
+                               'algorithms'][0]['name'])
+        user_info = user_request['process']['algorithms'][0]
+
+        # Changable, need to change on senquential run
+        user_info['UPLOADBUCKET'] = user_request['output_s3_name']
+        # QueueUrl
+        user_info['QUEUEURL'] = sqs.url
+
+        # generate task definition
+        task = _generate_task_definition(image, user_info, credentials)
+
     # set lambda
+    _generate_lambda()
 
     # set s3
     input_s3 = _get_or_create_s3(user_request['input_s3_name'])
