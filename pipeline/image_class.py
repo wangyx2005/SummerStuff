@@ -98,8 +98,13 @@ class image:
         self.env_variable[var_name] = self.variable(helper)
 
     def generate_task(self):
+        '''
+        generate task definition from template
+        '''
+        # read template file
         with open('ecs_task_definition_template.json', 'r') as tmpfile:
             template = json.load(tmpfile)
+
         template['containerDefinitions'][0]['memory'] = self.memory
         template['containerDefinitions'][0]['name'] = self.name
         template['containerDefinitions'][0]['image'] = self.image
