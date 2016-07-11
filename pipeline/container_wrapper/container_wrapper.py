@@ -70,12 +70,26 @@ def _generate_image(dockerfile_name):
     pass
 
 
-def _generate_image_info():
+def _generate_image_info(alg_info, container_name):
     '''
     generate wrapped image info for ecs task
+    para: alg_info:
+    type: json
+
+    para: container_name: access name of the wrapped container
+    type: string
+
+    rtype: json
     '''
     # TODO:
-    pass
+    new_vars = []
+    new_vars.append({'name': 'input_s3', 'required': True})
+    new_vars.append({'name': 'output_s3', 'required': True})
+    new_vars.append({'name': 'sqs', 'required': True})
+    alg_info['container_name'] = container_name
+    alg_info['instance_type'] = get_instance_type(alg_info)
+    alg_info['user_specified_environment_variables'].extend(new_vars)
+    return alg_info
 
 
 if __name__ == '__main__':
@@ -85,4 +99,13 @@ if __name__ == '__main__':
     for file_name in sys.argv[1:]:
         with open(file_name, 'r') as data_file:
             alg = json.load(data_file)
-        wrapper(alg)
+        dockerfile_name = wrapper(alg)
+
+        container_name = _generate_image(dockerfile_name)
+
+        info = _generate_image_info(alg, container_name)
+
+        name = container_name + '_info.json'
+
+        with open('../algorithms/' + name, 'w') as data_file:
+            json.dump(info, data_file, indent='    ')
