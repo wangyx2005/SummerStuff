@@ -54,7 +54,7 @@ def wrapper(alg_info):
     return dockerfile_name
 
 
-def get_instance_type(alg_info):
+def _get_instance_type(alg_info):
     '''
     Based on the algorithm developer provided information, choose an apporperate
     ec2 instance_type
@@ -87,7 +87,7 @@ def _generate_image_info(alg_info, container_name):
     new_vars.append({'name': 'output_s3', 'required': True})
     new_vars.append({'name': 'sqs', 'required': True})
     alg_info['container_name'] = container_name
-    alg_info['instance_type'] = get_instance_type(alg_info)
+    alg_info['instance_type'] = _get_instance_type(alg_info)
     alg_info['user_specified_environment_variables'].extend(new_vars)
     return alg_info
 
