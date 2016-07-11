@@ -29,6 +29,9 @@ def lambda_handler(event, context):
                         Namespace='AWS/EC2', Statistic='Average',
                         Dimensions=dimension, Period=300, Unit='Seconds', EvaluationPeriods=2, Threshold=1, ComparisonOperator='LessThanThreshold')
 
+    # send the cloudwatch name for cleanup
+    sqs.send_message(QueueUrl='%(alarm_sqs)s', MessageBody=alarm_name)
+
     # wait instance running before start task
     instances[0].wait_until_running()
 
