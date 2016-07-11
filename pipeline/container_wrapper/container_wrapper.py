@@ -35,9 +35,9 @@ def wrapper(alg_info):
     if alg_info['input_file_path'][-1] != '/':
         alg_info['input_file_path'] += '/'
 
-    runscript = generate_runscript(alg_info['input_file_path'], alg_info[
-                                   'output_file_path'], alg_info['name'],
-                                   alg_info['run_command'])
+    runscript = _generate_runscript(alg_info['input_file_path'], alg_info[
+                                    'output_file_path'], alg_info['name'],
+                                    alg_info['run_command'])
     with open('runscript.py', 'w') as tmpfile:
         tmpfile.write(runscript)
 
@@ -45,7 +45,7 @@ def wrapper(alg_info):
     if alg_info['system'] not in SUPPORTED_SYSTEM:
         print("not support %s yet." % alg_info['system'])
         return
-    dockerfile = generate_dockerfile(
+    dockerfile = _generate_dockerfile(
         alg_info['system'], alg_info['container_name'])
     dockerfile_name = alg_info['name'] + '.Dockerfile'
     with open(dockerfile_name, 'w') as tmpfile:
@@ -54,11 +54,20 @@ def wrapper(alg_info):
     return dockerfile_name
 
 
+def get_instance_type(alg_info):
+    '''
+    Based on the algorithm developer provided information, choose an apporperate
+    ec2 instance_type
+    '''
+    # TODO: rewrite
+    return 't2.micro'
+
 def _generate_image(dockerfile_name):
     '''
     build new docker image and upload, return new images
     '''
     # TODO:
+    pass
 
 
 def _generate_image_info():
@@ -66,6 +75,7 @@ def _generate_image_info():
     generate wrapped image info for ecs task
     '''
     # TODO:
+    pass
 
 
 if __name__ == '__main__':
