@@ -136,10 +136,10 @@ def run_program(input_file):
 
     #check if need to zip
     if NEED_ZIP == 'True':
-        file_name = 'Result-' + NAME + '-' + file_name.split(.)[0] + '.zip'
+        file_name = 'Result-' + NAME + '-' + file_name.split('.')[0] + '.zip'
         call(['zip', '-rv9', file_name, OUTPUT_PATH])
     else:
-        call(['cp', file_name, OUTPUT_PATH])
+        call(['cp', OUTPUT_PATH, file_name])
     return file_name
 
 
