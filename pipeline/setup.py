@@ -4,7 +4,7 @@ from zipfile import ZipFile
 import boto3
 from haikunator import Haikunator
 
-from image_class import image_info
+from image_class import image
 
 name_generator = Haikunator()
 
@@ -63,6 +63,7 @@ def _add_permission(queue, account_id):
 
 
 # S3
+
 S3_EVENT_CONFIGURATIONS = '''
 %(config_name)s: [
     {
@@ -173,6 +174,16 @@ def _create_deploy_package(lambda_code, name):
         codezip.write('lambda_run.py')
 
 
+def _create_lambda_fucn():
+    '''
+    create lambda function
+    '''
+    pass
+
+
+def _deleta_lambda(name):
+    boto3.client('lambda').delete_function(FunctionName=name)
+
 
 # ecs
 def _generate_task_definition(image_info, user_info, credentials):
@@ -212,7 +223,7 @@ def get_image_info(name):
     '''
     file_name = name + '_info.json'
     with open('../algorithms/' + file_name, 'r') as tmpfile:
-        info = image_info(tmpfile)
+        info = image(json.load(tmpfile))
     return info
 
 
