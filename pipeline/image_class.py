@@ -107,8 +107,11 @@ class image:
         with open('ecs_task_definition_template.json', 'r') as tmpfile:
             template = json.load(tmpfile)
 
+        template['family'] = self.name + name_generator.haikunate()
+
         template['containerDefinitions'][0]['memory'] = self.memory
-        template['containerDefinitions'][0]['name'] = self.name
+        template['containerDefinitions'][0]['name'] = self.name + \
+            name_generator.haikunate()
         template['containerDefinitions'][0]['image'] = self.image
         # TODO: change 32
         template['containerDefinitions'][0]['cpu'] = 32
@@ -124,3 +127,5 @@ class image:
             template['containerDefinitions'][0][
                 'environment'][var['name']] = var['value']
         template['family'] = self.name + '-' + name_generator.haikunate()
+
+        return template
