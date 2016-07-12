@@ -221,6 +221,7 @@ def get_image_info(name):
     rpara: the infomation of a algorithm, see
     rtype: image_class.image_info
     '''
+    # TODO: need to be rewrite down the road
     file_name = name + '_info.json'
     with open('../algorithms/' + file_name, 'r') as tmpfile:
         info = image(json.load(tmpfile))
