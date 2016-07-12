@@ -7,6 +7,8 @@ import traceback
 import boto3.session
 import botocore.exceptions
 
+# TODO: need to check folder
+
 # user specified environment variable
 UPLOADBUCKET = os.getenv('UPLOADBUCKET')
 QUEUEURL = os.getenv('QUEUEURL')
