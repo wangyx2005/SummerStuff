@@ -1,5 +1,5 @@
 {
-    "container_name": "change123",
+    "container_name": "wangyx2005/change123",
     "system": "ubuntu",
     "input_file_path": "/",
     "output_file_path": "/result",
@@ -18,15 +18,15 @@
     "user_specified_environment_variables": 
     [
         {
-            "name": "",
-            "required": ""
-        },
+            "name": "TEST_ENV",
+            "required": true
+        }
     ],
     "port": 
     [
         {
-            "port": "",
-            "protocol": ""
+            "port": "9090",
+            "protocol": "tcp"
         }
     ]
 }
