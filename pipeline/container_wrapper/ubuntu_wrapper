@@ -12,6 +12,6 @@ RUN mkdir -p /ecs_container
 
 WORKDIR /esc_container
 
-COPY runscript.py runscript
+COPY runscript.py runscript.py
 
 CMD python3 runscript.py
