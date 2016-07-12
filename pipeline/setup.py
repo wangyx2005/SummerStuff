@@ -1,4 +1,5 @@
 import json
+from zipfile import ZipFile
 
 import boto3
 from haikunator import Haikunator
@@ -137,12 +138,40 @@ def _generate_lambda(key_pair, image, sys_info):
     para: image: the informations about using a image
     type: image_class.image_info
 
-    para:
+    para: sys_info: other system info, see _get_sys_info()
+    type: dict
+
+    rtype: string
     '''
     lambda_para = {}
     lambda_para['image_id'] = ''
     lambda_para['key_pair'] = key_pair
     lambda_para['instance_type'] = image.instance_type
+    lambda_para.update(sys_info)
+    with open('lambda_run_task_template', 'r') as tmpfile:
+        lambda_func = tmpfile.read()
+    return lambda_func % lambda_para
+
+
+def _add_permission_for_lambda():
+    '''
+    add permission for lambda function allowing acess to s3,
+    sqs, start ec2, register cloudwatch
+    '''
+    # TODO
+    pass
+
+
+def _create_deploy_package(lambda_code, name):
+    '''
+    generate the deploy package
+    '''
+    # TODO: check correctness
+    with open('lambda_run.py', 'w') as run_file:
+        run_file.write(lambda_code)
+    with ZipFile(name, 'w') as codezip:
+        codezip.write('lambda_run.py')
+
 
 
 # ecs
@@ -178,11 +207,11 @@ def get_image_info(name):
     para name: algorithm name
     type: string
 
-    rpara: the infomation of a algorithm, see 
+    rpara: the infomation of a algorithm, see
     rtype: image_class.image_info
     '''
-    file_name = name + '-docker.json'
-    with open('algorithms/' + file_name, 'r') as tmpfile:
+    file_name = name + '_info.json'
+    with open('../algorithms/' + file_name, 'r') as tmpfile:
         info = image_info(tmpfile)
     return info
 
@@ -224,22 +253,22 @@ def pipeline_setup(user_request):
     sqs_name = name_generator.haikunate()
     sqs = _get_or_create_queue(sqs_name)
 
-    # set ecs task
-    if user_request['process']['type'] == 'single_run':
-        image = get_image_info(user_request['process'][
-                               'algorithms'][0]['name'])
-        user_info = user_request['process']['algorithms'][0]
+    # set ecs task 
+    image = get_image_info(user_request['name'])
+    # user_info = user_request['process']['algorithms'][0]
+    user_info = {}
+    user_info['variables'] = user_request['variables']
+    # Changable, need to change on senquential run
+    user_info['UPLOADBUCKET'] = user_request['output_s3_name']
+    # QueueUrl
+    user_info['QUEUEURL'] = sqs.url
 
-        # Changable, need to change on senquential run
-        user_info['UPLOADBUCKET'] = user_request['output_s3_name']
-        # QueueUrl
-        user_info['QUEUEURL'] = sqs.url
-
-        # generate task definition
-        task = _generate_task_definition(image, user_info, credentials)
+    # generate task definition
+    task = _generate_task_definition(image, user_info, credentials)
 
     # set lambda
-    _generate_lambda()
+    sys_info = _get_sys_info()
+    _generate_lambda(user_request['key_pair'], image, sys_info)
 
     # set s3
     input_s3 = _get_or_create_s3(user_request['input_s3_name'])
