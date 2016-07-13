@@ -10,6 +10,14 @@ from image_class import image
 name_generator = Haikunator()
 
 
+def _get_task_credentials():
+    credentials = {}
+    from _config.py import *
+    credentials['AWS_DEFAULT_REGION'] = 'us-east-1'
+    credentials['AWS_DEFAULT_OUTPUT'] = 'json'
+    credentials['AWS_ACCESS_KEY_ID'] = AWSAccessKeyId
+    credentials['AWS_SECRET_ACCESS_KEY'] = AWSSecretKey
+
 # SQS related
 
 
@@ -122,7 +130,7 @@ def _set_event(name, event_arn, option):
         config = S3_EVENT_CONFIGURATIONS % {
             'FunctionArn': event_arn, 'config_name': 'TopicConfigurations'}
     else:
-        print('option needs to be one of the following three: labmda, sqs, sns')
+        print('option needs to be one of the following: labmda, sqs, sns')
         return
 
     print(config)
@@ -187,7 +195,7 @@ def _delete_task_definition(task):
 
 # lambda
 
-def _generate_lambda(key_pair, image, sys_info):
+def _generate_lambda(image, sys_info, request, task_name):
     '''
     generate lambda function using lambda_run_task_template
     para: image: the informations about using a image
@@ -200,6 +208,8 @@ def _generate_lambda(key_pair, image, sys_info):
     '''
     lambda_para = {}
     lambda_para['instance_type'] = image.instance_type
+    lambda_para['task_name'] = task_name
+    lambda_para.update(request)
     lambda_para.update(sys_info)
     with open('lambda_run_task_template', 'r') as tmpfile:
         lambda_func = tmpfile.read()
@@ -226,11 +236,16 @@ def _create_deploy_package(lambda_code, name):
         codezip.write('lambda_run.py')
 
 
-def _create_lambda_fucn():
+def _create_lambda_func(zipname, ):
     '''
     create lambda function
     '''
-    pass
+    codezip = ZipFile(zipname, 'r')
+    name = name_generator.haikunate()
+    role = ''
+    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_run.lambda_handler', Code={'ZipFile':codezip}, Timeout=10, MemorySize=128)
+    codezip.close()
+    return res['FunctionArn']
 
 
 def _deleta_lambda(name):
@@ -274,49 +289,54 @@ def _get_sys_info(key_pair, account_id, region):
     return info
 
 
-def pipeline_setup(user_request, sys_info):
+def pipeline_setup(request, sys_info):
     '''
     based on the user request, set up the whole thing.
-    user_request
+    para: request:
     {
-    #    "account_id": ""
         "name": "",
         "port": [],
+        "sqs": "",
+        "alarm_sqs": "",
         "input_s3_name": "",
         "output_s3_name": "",
-    #    "key_pair": "",
         "variables":
         {
             "name": "value"
         }
     }
+    type: json
+
+    para:sys_info
 
     '''
     # set sqs
-    sqs_name = name_generator.haikunate()
-    sqs = _get_or_create_queue(sqs_name)
+    sqs = _get_or_create_queue(request['sqs'])
 
     # set ecs task
-    image = get_image_info(user_request['name'])
-    # user_info = user_request['process']['algorithms'][0]
-    user_info = {}
-    user_info['variables'] = user_request['variables']
+    image = get_image_info(request['name'])
+    # info = user_request['process']['algorithms'][0]
+    info = {}
+    info['variables'] = request['variables']
     # Changable, need to change on senquential run
-    user_info['UPLOADBUCKET'] = user_request['output_s3_name']
+    info['UPLOADBUCKET'] = request['output_s3_name']
     # QueueUrl
-    user_info['QUEUEURL'] = sqs.url
+    info['QUEUEURL'] = sqs.url
 
     # generate task definition
-    task = _generate_task_definition(image, user_info, credentials)
+    credentials = _get_task_credentials()
+    task = _generate_task_definition(image, info, credentials)
 
     # set lambda
-    _generate_lambda(user_request['key_pair'], image, sys_info)
+    code = _generate_lambda(image, sys_info, request)
+    _create_deploy_package(code)
+    lambda_arn = _create_lambda_func()
 
     # set s3
-    input_s3 = _get_or_create_s3(user_request['input_s3_name'])
+    input_s3 = _get_or_create_s3(request['input_s3_name'])
     _set_event(input_s3, lambda_arn, 'lambda')
 
-    output_s3 = _get_or_create_s3(user_request['output_s3_name'])
+    output_s3 = _get_or_create_s3(request['output_s3_name'])
     print('You will get your result at %s', output_s3)
 
     # finish setup
@@ -339,7 +359,12 @@ def main(user_request):
         request.update(user_request['process']['algorithms'][0])
         request['input_s3_name'] = user_request['input_s3_name']
         request['output_s3_name'] = user_request['output_s3_name']
-        pipeline_setup(user_request, sys_info)
+        request['sqs'] = name_generator.haikunate()
+        request['alarm_sqs'] = 'shutdown_alarm_sqs'
+        clean = pipeline_setup(request, sys_info)
+
+    with open('clean_up.json', 'w+') as tmpfile:
+        json.dump(clean, tmpfile, sort_keys=True, indent='    ')
 
 
 if __name__ == '__main__':
