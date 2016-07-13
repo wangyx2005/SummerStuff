@@ -99,7 +99,7 @@ def _generate_image(folder_name):
     call(BUILD_COMMAND.split())
     call(TAG_COMMAND.split())
     call(UPLOAD_COMMAND.split())
-    return name
+    return tagged_name
 
 
 def _generate_image_info(alg_info, container_name):
