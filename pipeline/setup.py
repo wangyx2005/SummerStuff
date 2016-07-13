@@ -1,5 +1,6 @@
 import json
 from zipfile import ZipFile
+import sys
 
 import boto3
 from haikunator import Haikunator
@@ -10,6 +11,7 @@ name_generator = Haikunator()
 
 
 # SQS related
+
 
 def _get_or_create_queue(name):
     '''
@@ -131,6 +133,58 @@ def _set_event(name, event_arn, option):
     print('finish setup s3 bucket %s event notification' % name)
 
 
+# ecs
+def _generate_task_definition(image_info, user_info, credentials):
+    '''
+    Based on the algorithm information and the user running information,
+    generate task definition
+    para image_info: all the required info for running the docker container
+    type: image_info class
+    para: user_info: passed in information about using the algorithm.
+    user_info: {'port' : [], 'variables' = {}}
+    type: json
+
+    rtype json
+    {
+        'taskDefinition': {
+            'taskDefinitionArn': 'string',
+            'containerDefinitions': [...],
+            'family': 'string',
+            'revision': 123,
+            'volumes': [
+                {
+                    'name': 'string',
+                    'host': {
+                        'sourcePath': 'string'
+                    }
+                },
+            ],
+            'status': 'ACTIVE'|'INACTIVE',
+            'requiresAttributes': [
+                {
+                    'name': 'string',
+                    'value': 'string'
+                },
+            ]
+        }
+    }
+    '''
+    image_info.init_all_variables(user_info, credentials)
+    task_def = image_info.generate_task()
+    task = boto3.client('ecs').register_task_definition(family=task_def[
+        'family'], containerDefinitions=task_def['containerDefinitions'])
+    # task name: task_def['family']
+    return task
+
+
+def _delete_task_definition(task):
+    # should be wrong
+    # TODO: find the correct way to delete task
+    boto3.client('ecs').deregister_task_definition(taskDefinition=task)
+
+# iam
+
+
 # lambda
 
 def _generate_lambda(key_pair, image, sys_info):
@@ -145,8 +199,6 @@ def _generate_lambda(key_pair, image, sys_info):
     rtype: string
     '''
     lambda_para = {}
-    lambda_para['image_id'] = ''
-    lambda_para['key_pair'] = key_pair
     lambda_para['instance_type'] = image.instance_type
     lambda_para.update(sys_info)
     with open('lambda_run_task_template', 'r') as tmpfile:
@@ -185,32 +237,6 @@ def _deleta_lambda(name):
     boto3.client('lambda').delete_function(FunctionName=name)
 
 
-# ecs
-def _generate_task_definition(image_info, user_info, credentials):
-    '''
-    Based on the algorithm information and the user running information,
-    generate task definition
-    para image_info: all the required info for running the docker container
-    type: image_info class
-    para: user_info: passed in information about using the algorithm.
-    user_info: {'port' : [], 'variables' = {}}
-    type: json
-
-    rtype json
-    '''
-    image_info.init_all_variables(user_info, credentials)
-    task_def = image_info.generate_task()
-    task = boto3.client('ecs').register_task_definition(family=task_def[
-        'family'], containerDefinitions=task_def['containerDefinitions'])
-    return task
-
-
-def _delete_task_definition(task):
-    # should be wrong
-    # TODO: find the correct way to delete task
-    boto3.client('ecs').deregister_task_definition(taskDefinition=task)
-
-
 # utilities for setting up the whole thing
 def get_image_info(name):
     '''
@@ -228,32 +254,37 @@ def get_image_info(name):
     return info
 
 
-def _get_sys_info():
+def _get_sys_info(key_pair, account_id, region):
     '''
-    prepare the system information including ec2 image_id, key_pair,
-    security_group, subnet_id, iam_name.
+    prepare the system information (non-task specific informations) including
+    ec2 image_id, key_pair, security_group, subnet_id, iam_name, region,
+    accout_id for making the lambda function.
 
     rtype dict
     '''
-    # TODO: need rewrite this function    
+    # TODO: need rewrite this function
     info = {}
     info['image_id'] = 'ami-8f7687e2'
     info['iam_name'] = 'ecsInstanceRole'
     info['subnet_id'] = 'subnet-d32725fb'
     info['security_group'] = 'launch-wizard-13'
+    info['key_pair'] = key_pair
+    info['region'] = region
+    info['account_id'] = account_id
     return info
 
 
-def pipeline_setup(user_request):
+def pipeline_setup(user_request, sys_info):
     '''
     based on the user request, set up the whole thing.
     user_request
     {
+    #    "account_id": ""
         "name": "",
         "port": [],
         "input_s3_name": "",
         "output_s3_name": "",
-        "key_pair": "",
+    #    "key_pair": "",
         "variables":
         {
             "name": "value"
@@ -265,7 +296,7 @@ def pipeline_setup(user_request):
     sqs_name = name_generator.haikunate()
     sqs = _get_or_create_queue(sqs_name)
 
-    # set ecs task 
+    # set ecs task
     image = get_image_info(user_request['name'])
     # user_info = user_request['process']['algorithms'][0]
     user_info = {}
@@ -279,7 +310,6 @@ def pipeline_setup(user_request):
     task = _generate_task_definition(image, user_info, credentials)
 
     # set lambda
-    sys_info = _get_sys_info()
     _generate_lambda(user_request['key_pair'], image, sys_info)
 
     # set s3
@@ -291,3 +321,28 @@ def pipeline_setup(user_request):
 
     # finish setup
     print('You can start upload files')
+
+
+def main(user_request):
+    '''
+    parse the user_request json
+    para: user_request
+    type: json
+
+    support only 'single_run' for now
+    '''
+    sys_info = _get_sys_info(user_request['key_pair'], user_request[
+                             'account_id', user_request['region']])
+
+    if user_request['process']['type'] == 'single_run':
+        request = {}
+        request.update(user_request['process']['algorithms'][0])
+        request['input_s3_name'] = user_request['input_s3_name']
+        request['output_s3_name'] = user_request['output_s3_name']
+        pipeline_setup(user_request, sys_info)
+
+
+if __name__ == '__main__':
+    with open(sys.argv[1], 'r') as tmpfile:
+        user_request = json.load(tmpfile)
+    main(user_request)
