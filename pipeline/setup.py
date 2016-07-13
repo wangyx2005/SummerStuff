@@ -220,9 +220,9 @@ def _create_deploy_package(lambda_code, name):
     generate the deploy package
     '''
     # TODO: check correctness
-    with open('lambda_run.py', 'w') as run_file:
+    with open('lambda_run.py', 'w+') as run_file:
         run_file.write(lambda_code)
-    with ZipFile(name, 'w') as codezip:
+    with ZipFile(name, 'w+') as codezip:
         codezip.write('lambda_run.py')
 
 
@@ -332,7 +332,7 @@ def main(user_request):
     support only 'single_run' for now
     '''
     sys_info = _get_sys_info(user_request['key_pair'], user_request[
-                             'account_id', user_request['region']])
+                             'account_id'], user_request['region'])
 
     if user_request['process']['type'] == 'single_run':
         request = {}
