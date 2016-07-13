@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     start_time = time()
     print("Received event: " + json.dumps(event, indent=2))
 
-    QueueUrl = '%(queue_url)s'
+    QueueUrl = '%(sqs)s'
     sqs.send_message(QueueUrl=QueueUrl, MessageBody=json.dumps(event))
 
     # add ec2 machine into ecs default cluster
@@ -45,5 +45,5 @@ def lambda_handler(event, context):
     # run ecs task
     ecs.run_task(taskDefinition='%(task_name)s', count=1)
 
-    print('run time %f' % (time() - start_time))
+    print('run time {}'.format((time() - start_time)))
     return 'send messages to sqs and start ecs'
