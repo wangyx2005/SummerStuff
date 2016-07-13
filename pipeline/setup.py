@@ -3,11 +3,55 @@ from zipfile import ZipFile
 import sys
 
 import boto3
+from botocore.exceptions import ClientError
 from haikunator import Haikunator
 
 from image_class import image
 
 name_generator = Haikunator()
+
+LAMBDA_EXEC_ROLE_NAME = 'lambda_exec_role'
+
+LAMBDA_EXEC_ROLE = {
+    "Statement": [
+        {
+            "Action": [
+                "logs:*",
+                "cloudwatch:*",
+                "lambda:invokeFunction",
+                "sqs:SendMessage",
+                "ec2:Describe*",
+                "ec2:StartInsatnces",
+                "ecs:RunTask"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:logs:*:*:*",
+                "arn:aws:lambda:*:*:*:*",
+                "arn:aws:sqs:*:*:*",
+                "arn:aws:ec2:*:*:*",
+                "arn:aws:cloudwatch:*:*:*",
+                "arn:aws:ecs:*:*:*"
+            ]
+        }
+    ],
+    "Version": "2012-10-17"
+}
+
+
+LAMBDA_EXECUTION_ROLE_TRUST_POLICY = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "lambda.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
 
 
 def _get_task_credentials():
@@ -193,6 +237,56 @@ def _delete_task_definition(task):
 # iam
 
 
+def _create_lambda_exec_role():
+    '''
+    create lambda_exec_role that
+    '''
+    # create role
+    iam = boto3.client('iam')
+    policy = json.dumps(LAMBDA_EXECUTION_ROLE_TRUST_POLICY, sort_keys=True)
+
+    try:
+        res = iam.get_role(LAMBDA_EXEC_ROLE_NAME)
+        _policy = res['Role']['AssumeRolePolicyDocument']
+        if _policy is not None and json.dumps(policy) == policy:
+            pass
+        else:
+            iam.update_assume_role_policy(
+                RoleName=LAMBDA_EXEC_ROLE_NAME, PolicyDocument=policy)
+
+    except ClientError:
+        print('creating role %s', LAMBDA_EXEC_ROLE_NAME)
+        iam.create_role(RoleName=LAMBDA_EXEC_ROLE_NAME,
+                        AssumeRolePolicyDocument=policy)
+        res = iam.get_role(LAMBDA_EXEC_ROLE_NAME)
+
+    # add policy
+    exec_policy = json.dumps(LAMBDA_EXEC_ROLE, sort_keys=True)
+
+    res = iam.list_role_policies(RoleName=LAMBDA_EXEC_ROLE_NAME)
+
+    found = False
+    for name in res['PolicyNames']:
+        found = (name == 'LambdaExec')
+        if found:
+            break
+
+    if not found:
+        iam.put_role_policy(RoleName=LAMBDA_EXEC_ROLE_NAME, PolicyName='LambdaExec', PolicyDocument=exec_policy)
+
+
+def _get_role_arn(role_name):
+    '''
+    '''
+    try:
+        res = boto3.client('iam').get_role(role_name)
+    except ClientError as e:
+        print(e)
+        print('Does not have role %s, make sure you have permission on creating iam role and run create_lambda_exec_role()')
+
+    return res['Role']['Arn']
+
+
 # lambda
 
 def _generate_lambda(image, sys_info, request, task_name):
@@ -236,14 +330,14 @@ def _create_deploy_package(lambda_code, name):
         codezip.write('lambda_run.py')
 
 
-def _create_lambda_func(zipname, ):
+def _create_lambda_func(zipname):
     '''
     create lambda function
     '''
     codezip = ZipFile(zipname, 'r')
     name = name_generator.haikunate()
-    role = ''
-    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_run.lambda_handler', Code={'ZipFile':codezip}, Timeout=10, MemorySize=128)
+    role = _get_role_arn(LAMBDA_EXEC_ROLE_NAME)
+    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_run.lambda_handler', Code={'ZipFile': codezip}, Timeout=10, MemorySize=128)
     codezip.close()
     return res['FunctionArn']
 
