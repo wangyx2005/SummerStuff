@@ -10,8 +10,8 @@ import botocore.exceptions
 # TODO: need to check folder
 
 # user specified environment variable
-UPLOADBUCKET = os.getenv('UPLOADBUCKET')
-QUEUEURL = os.getenv('QUEUEURL')
+UPLOADBUCKET = os.getenv('output_s3_name')
+QUEUEURL = os.getenv('sqs')
 REGION = os.getenv('REGION')
 NAME = os.getenv('NAME', default='%(name)s')
 
