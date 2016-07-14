@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from haikunator import Haikunator
 
 from image_class import image
+from _config import *
 
 name_generator = Haikunator()
 
@@ -56,7 +57,6 @@ LAMBDA_EXECUTION_ROLE_TRUST_POLICY = {
 
 def _get_task_credentials():
     credentials = {}
-    from _config.py import *
     credentials['AWS_DEFAULT_REGION'] = 'us-east-1'
     credentials['AWS_DEFAULT_OUTPUT'] = 'json'
     credentials['AWS_ACCESS_KEY_ID'] = AWSAccessKeyId
@@ -239,7 +239,8 @@ def _delete_task_definition(task):
 
 def _create_lambda_exec_role():
     '''
-    create lambda_exec_role that
+    create lambda_exec_role that allowing lambda function to acess s3,
+    sqs, start ec2 and register cloudwatch
     '''
     # create role
     iam = boto3.client('iam')
@@ -282,7 +283,7 @@ def _get_role_arn(role_name):
         res = boto3.client('iam').get_role(role_name)
     except ClientError as e:
         print(e)
-        print('Does not have role %s, make sure you have permission on creating iam role and run create_lambda_exec_role()')
+        print('Does not have role %s, make sure you have permission on creating iam role and run create_lambda_exec_role()', LAMBDA_EXEC_ROLE_NAME)
 
     return res['Role']['Arn']
 
@@ -310,13 +311,13 @@ def _generate_lambda(image, sys_info, request, task_name):
     return lambda_func % lambda_para
 
 
-def _add_permission_for_lambda():
-    '''
-    add permission for lambda function allowing acess to s3,
-    sqs, start ec2, register cloudwatch
-    '''
-    # TODO
-    pass
+# def _add_permission_for_lambda():
+#     '''
+#     add permission for lambda function allowing acess to s3,
+#     sqs, start ec2, register cloudwatch
+#     '''
+#     # TODO
+#     pass
 
 
 def _create_deploy_package(lambda_code, name):
@@ -448,6 +449,7 @@ def main(user_request):
     sys_info = _get_sys_info(user_request['key_pair'], user_request[
                              'account_id'], user_request['region'])
 
+    clean = {}
     if user_request['process']['type'] == 'single_run':
         request = {}
         request.update(user_request['process']['algorithms'][0])
