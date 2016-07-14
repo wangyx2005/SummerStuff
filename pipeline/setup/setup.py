@@ -170,13 +170,13 @@ def _set_event(name, event_arn, option):
     '''
     if option == 'lambda':
         config = S3_EVENT_CONFIGURATIONS % {
-            'FunctionArn': event_arn, 'config_name': 'LambdaFunctionConfigurations', 'config_arn': 'TopicArn'}
+            'FunctionArn': event_arn, 'config_name': 'LambdaFunctionConfigurations', 'config_arn': 'LambdaFunctionArn'}
     elif option == 'sqs':
         config = S3_EVENT_CONFIGURATIONS % {
             'FunctionArn': event_arn, 'config_name': 'QueueConfigurations', 'config_arn': 'QueueArn'}
-    elif option == 'sqs':
+    elif option == 'sns':
         config = S3_EVENT_CONFIGURATIONS % {
-            'FunctionArn': event_arn, 'config_name': 'TopicConfigurations', 'config_arn': 'LambdaFunctionArn'}
+            'FunctionArn': event_arn, 'config_name': 'TopicConfigurations', 'config_arn': 'TopicArn'}
     else:
         print('option needs to be one of the following: labmda, sqs, sns')
         return
@@ -449,7 +449,7 @@ def pipeline_setup(request, sys_info, clean):
 
     # set s3
     input_s3 = _get_or_create_s3(request['input_s3_name'])
-    _set_event(input_s3, lambda_arn, 'lambda')
+    # _set_event(input_s3, lambda_arn, 'lambda')
 
     output_s3 = _get_or_create_s3(request['output_s3_name'])
     print('You will get your result at %s', output_s3)
