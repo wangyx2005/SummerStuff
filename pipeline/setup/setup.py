@@ -121,14 +121,16 @@ def _add_permission(queue, account_id):
 # S3
 
 S3_EVENT_CONFIGURATIONS = '''
-%(config_name)s: [
-    {
-        'LambdaFunctionArn': %(FunctionArn)s,
-        'Events': [
-            's3:ObjectCreated:*'
-        ],
-    },
-]
+{
+    "%(config_name)s": [
+        {
+            "%(config_arn)s": "%(FunctionArn)s",
+            "Events": [
+                "s3:ObjectCreated:*"
+            ]
+        }
+    ]
+}
 '''
 
 
@@ -168,20 +170,24 @@ def _set_event(name, event_arn, option):
     '''
     if option == 'lambda':
         config = S3_EVENT_CONFIGURATIONS % {
-            'FunctionArn': event_arn, 'config_name': 'LambdaFunctionConfigurations'}
+            'FunctionArn': event_arn, 'config_name': 'LambdaFunctionConfigurations', 'config_arn': 'TopicArn'}
     elif option == 'sqs':
         config = S3_EVENT_CONFIGURATIONS % {
-            'FunctionArn': event_arn, 'config_name': 'QueueConfigurations'}
+            'FunctionArn': event_arn, 'config_name': 'QueueConfigurations', 'config_arn': 'QueueArn'}
     elif option == 'sqs':
         config = S3_EVENT_CONFIGURATIONS % {
-            'FunctionArn': event_arn, 'config_name': 'TopicConfigurations'}
+            'FunctionArn': event_arn, 'config_name': 'TopicConfigurations', 'config_arn': 'LambdaFunctionArn'}
     else:
         print('option needs to be one of the following: labmda, sqs, sns')
         return
 
     print(config)
 
-    boto3.client('s3').put_bucket_nofification_configuration(
+    config = json.loads(config)
+
+    print(config)
+
+    boto3.client('s3').put_bucket_notification_configuration(
         Bucket=name, NotificationConfiguration=config)
 
     print('finish setup s3 bucket %s event notification' % name)
@@ -337,7 +343,13 @@ def _create_lambda_func(zipname):
     '''
     create lambda function
     '''
-    code = open(zipname)
+    # code = io.BytesIO()
+    # with ZipFile(code, 'w') as z:
+    #     with ZipFile(zipname, 'r') as datafile:
+    #         for file in datafile.namelist():
+    #             z.write(file)
+    with open(zipname, 'rb') as tmpfile:
+        code = tmpfile.read()
     name = name_generator.haikunate()
     role = _get_role_arn(LAMBDA_EXEC_ROLE_NAME)
     res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_function.lambda_handler', Code={'ZipFile': code}, Timeout=10, MemorySize=128)
@@ -408,6 +420,7 @@ def pipeline_setup(request, sys_info, clean):
     '''
     # set sqs
     sqs = _get_or_create_queue(request['sqs'])
+    request['sqs'] = sqs.url
 
     # set ecs task
     image = get_image_info(request['name'])
@@ -470,7 +483,7 @@ def main(user_request):
         request['input_s3_name'] = user_request['input_s3_name']
         request['output_s3_name'] = user_request['output_s3_name']
         request['sqs'] = name_generator.haikunate()
-        request['alarm_sqs'] = 'shutdown_alarm_sqs'
+        request['alarm_sqs'] = clean['cloudwatch'].url
         print(json.dumps(request, sort_keys=True, indent='    '))
         pipeline_setup(request, sys_info, clean)
 
