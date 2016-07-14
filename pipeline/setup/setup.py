@@ -1,6 +1,6 @@
 import json
 from zipfile import ZipFile
-import io
+from time import sleep
 import sys
 
 import boto3
@@ -9,6 +9,8 @@ from haikunator import Haikunator
 
 from image_class import image
 from _config import *
+
+WAIT_TIME = 5
 
 name_generator = Haikunator()
 
@@ -97,7 +99,7 @@ def _delete_queue(queue):
     queue.delete()
 
 
-def _add_permission(queue, account_id):
+def _add_permission_s3_sqs(queue, account_id):
     '''
     add permission to allow s3 put information into sqs
     para: queue
@@ -158,6 +160,13 @@ def _get_or_create_s3(name):
     return name
 
 
+def _add_permission_s3_lambda(s3_name, lambda_arn):
+    lm = boto3.client('lambda')
+    source = 'arn:aws:s3:::' + s3_name
+    func = lm.get_function(FunctionName=lambda_arn)['Configuration']
+    lm.add_permission(FunctionName=func['FunctionName'], StatementId='Allow_s3_invoke', Action='lambda:InvokeFunction', Principal='s3.amazonaws.com', SourceArn=source)
+
+
 def _set_event(name, event_arn, option):
     '''
     set s3 create object to event notification.
@@ -171,6 +180,7 @@ def _set_event(name, event_arn, option):
     if option == 'lambda':
         config = S3_EVENT_CONFIGURATIONS % {
             'FunctionArn': event_arn, 'config_name': 'LambdaFunctionConfigurations', 'config_arn': 'LambdaFunctionArn'}
+        _add_permission_s3_lambda(name, event_arn)
     elif option == 'sqs':
         config = S3_EVENT_CONFIGURATIONS % {
             'FunctionArn': event_arn, 'config_name': 'QueueConfigurations', 'config_arn': 'QueueArn'}
@@ -181,11 +191,7 @@ def _set_event(name, event_arn, option):
         print('option needs to be one of the following: labmda, sqs, sns')
         return
 
-    print(config)
-
     config = json.loads(config)
-
-    print(config)
 
     boto3.client('s3').put_bucket_notification_configuration(
         Bucket=name, NotificationConfiguration=config)
@@ -449,10 +455,11 @@ def pipeline_setup(request, sys_info, clean):
 
     # set s3
     input_s3 = _get_or_create_s3(request['input_s3_name'])
-    # _set_event(input_s3, lambda_arn, 'lambda')
+    sleep(5)
+    _set_event(input_s3, lambda_arn, 'lambda')
 
     output_s3 = _get_or_create_s3(request['output_s3_name'])
-    print('You will get your result at %s', output_s3)
+    print('You will get your result at %s' % output_s3)
 
     # finish setup
     print('You can start upload files')
