@@ -444,7 +444,7 @@ def pipeline_setup(request, sys_info, clean):
     task = _generate_task_definition(image, info, credentials)
     clean['task'].append(task)
 
-    print(json.dumps(task, sort_keys=True, indent='    '))
+    # print(json.dumps(task, sort_keys=True, indent='    '))
 
     # set lambda
     code = _generate_lambda(image, sys_info, request, task['taskDefinition']['family'])
@@ -476,7 +476,7 @@ def main(user_request):
     sys_info = _get_sys_info(user_request['key_pair'], user_request[
                              'account_id'], user_request['region'])
 
-    print(json.dumps(sys_info, sort_keys=True, indent='    '))
+#    print(json.dumps(sys_info, sort_keys=True, indent='    '))
 
     clean = {}
     clean['sqs'] = []
@@ -491,7 +491,6 @@ def main(user_request):
         request['output_s3_name'] = user_request['output_s3_name']
         request['sqs'] = name_generator.haikunate()
         request['alarm_sqs'] = clean['cloudwatch'].url
-        print(json.dumps(request, sort_keys=True, indent='    '))
         pipeline_setup(request, sys_info, clean)
 
     with open('clean_up.json', 'w+') as tmpfile:
