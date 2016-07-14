@@ -74,11 +74,11 @@ def _get_or_create_queue(name):
     get queue by name, if the queue doesnot exist, create one.
     rtype: sqs.Queue
     '''
-    resource = boto3.resource('sqs', )
+    resource = boto3.resource('sqs')
     if _is_sqs_exist(name):
-        return resource.get_queue_by_name(QueueName=name)
+        return resource.get_queue_by_name(QueueName=name).url
     else:
-        return resource.create_queue(QueueName=name)
+        return resource.create_queue(QueueName=name).url
 
 
 def _is_sqs_exist(name):
@@ -95,8 +95,8 @@ def _is_sqs_exist(name):
     return False
 
 
-def _delete_queue(queue):
-    queue.delete()
+def _delete_queue(queue_url):
+    boto3.client('sqs').delete_queue(QueueUrl=queue_url)
 
 
 def _add_permission_s3_sqs(queue, account_id):
@@ -425,8 +425,8 @@ def pipeline_setup(request, sys_info, clean):
 
     '''
     # set sqs
-    sqs = _get_or_create_queue(request['sqs'])
-    request['sqs'] = sqs.url
+    request['sqs'] = _get_or_create_queue(request['sqs'])
+    clean['sqs'].append(request['sqs'])
 
     # set ecs task
     image = get_image_info(request['name'])
@@ -437,12 +437,12 @@ def pipeline_setup(request, sys_info, clean):
     # Changable, need to change on senquential run
     info['UPLOADBUCKET'] = request['output_s3_name']
     # QueueUrl
-    info['QUEUEURL'] = sqs.url
+    info['QUEUEURL'] = request['sqs']
 
     # generate task definition
     credentials = _get_task_credentials()
     task = _generate_task_definition(image, info, credentials)
-    clean['task'].append(task)
+    clean['task'].append(task['taskDefinition']['taskDefinitionArn'])
 
     # print(json.dumps(task, sort_keys=True, indent='    '))
 
@@ -452,17 +452,15 @@ def pipeline_setup(request, sys_info, clean):
     zipname = request['name'] + name_generator.haikunate() + '.zip'
     _create_deploy_package(code, zipname)
     lambda_arn = _create_lambda_func(zipname)
+    clean['lambda'].append(lambda_arn)
 
     # set s3
     input_s3 = _get_or_create_s3(request['input_s3_name'])
-    sleep(5)
     _set_event(input_s3, lambda_arn, 'lambda')
 
     output_s3 = _get_or_create_s3(request['output_s3_name'])
-    print('You will get your result at %s' % output_s3)
-
-    # finish setup
-    print('You can start upload files')
+    clean['s3'].append(input_s3)
+    clean['s3'].append(output_s3)
 
 
 def main(user_request):
@@ -482,6 +480,7 @@ def main(user_request):
     clean['sqs'] = []
     clean['task'] = []
     clean['lambda'] = []
+    clean['s3'] = []
     clean['cloudwatch'] = _get_or_create_queue('shutdown_alarm_sqs')
 
     if user_request['process']['type'] == 'single_run':
@@ -490,8 +489,14 @@ def main(user_request):
         request['input_s3_name'] = user_request['input_s3_name']
         request['output_s3_name'] = user_request['output_s3_name']
         request['sqs'] = name_generator.haikunate()
-        request['alarm_sqs'] = clean['cloudwatch'].url
+        request['alarm_sqs'] = clean['cloudwatch']
         pipeline_setup(request, sys_info, clean)
+
+    # finish setup
+    print('-----------------------------------------------------------')
+    print('You can start upload files at %s' % user_request['input_s3_name'])
+    print('You will get your result at %s' % user_request['output_s3_name'])
+    print('-----------------------------------------------------------')
 
     with open('clean_up.json', 'w+') as tmpfile:
         json.dump(clean, tmpfile, sort_keys=True, indent='    ')
