@@ -1,0 +1,33 @@
+{
+    "containerDefinitions": [
+        {
+            "volumesFrom": [],
+            "memory": 128,                     // TO BE REPLACED
+            "extraHosts": null,
+            "dnsServers": null,
+            "disableNetworking": null,
+            "dnsSearchDomains": null,
+            "portMappings": [],                // TO BE REPLACED 
+            "hostname": null,
+            "essential": true,
+            "entryPoint": null,
+            "mountPoints": [],
+            "name": "grunt-master",             // TO BE REPLACED
+            "ulimits": null,
+            "dockerSecurityOptions": null,
+            "environment": [],                  // TO BE REPLACED
+            "links": null,
+            "workingDirectory": null,
+            "readonlyRootFilesystem": null,
+            "image": "",                        // TO BE REPLACED
+            "command": null,
+            "user": null,
+            "dockerLabels": null,
+            "logConfiguration": null,
+            "cpu": 32,                          // TO BE REPLACED
+            "privileged": null,
+        }
+    ],
+    "volumes": [],
+    "family": ""                                // TO BE REPLACED
+}

@@ -1,0 +1,25 @@
+{
+    "Statement": [
+        {
+            "Action": [
+                "logs:*",
+                "cloudwatch:*",
+                "lambda:invokeFunction",
+                "sqs:SendMessage",
+                "ec2:Describe*",
+                "ec2:StartInsatnces",
+                "ecs:RunTask"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:logs:*:*:*",
+                "arn:aws:lambda:*:*:*:*",
+                "arn:aws:sqs:*:*:*",
+                "arn:aws:ec2:*:*:*",
+                "arn:aws:cloudwatch:*:*:*", 
+                "arn:aws:ecs:*:*:*"
+            ]
+        }
+    ],
+    "Version": "2012-10-17"
+}
