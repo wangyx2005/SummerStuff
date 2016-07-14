@@ -48,6 +48,7 @@ class image:
         self.memory = info['memory']['suggested']
         self.name = info['name']
         self.image = info['container_name']
+        self.instance_type = info['instance_type']
         # TODO: this need to be changed
         self.cpu = 32
         self.port = {}
