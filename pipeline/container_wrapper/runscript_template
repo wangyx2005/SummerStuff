@@ -12,7 +12,7 @@ import botocore.exceptions
 # user specified environment variable
 UPLOADBUCKET = os.getenv('output_s3_name')
 QUEUEURL = os.getenv('sqs')
-REGION = os.getenv('REGION')
+REGION = os.getenv('AWS_DEFAULT_REGION')
 NAME = os.getenv('NAME', default='%(name)s')
 
 # user define if want to zip the result file

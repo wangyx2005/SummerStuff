@@ -121,6 +121,10 @@ def _generate_image_info(alg_info, container_name):
     new_vars.append({'name': 'ZIP', 'required': False})
     new_vars.append({'name': 'LOG_LVL', 'required': False})
     new_vars.append({'name': 'NAME', 'required': True})
+    new_vars.append({'name': 'AWS_DEFAULT_REGION', 'required': True})
+    new_vars.append({'name': 'AWS_DEFAULT_OUTPUT', 'required': True})
+    new_vars.append({'name': 'AWS_ACCESS_KEY_ID', 'required': True})
+    new_vars.append({'name': 'AWS_SECRET_ACCESS_KEY', 'required': True})
 
     alg_info['container_name'] = container_name
     alg_info['instance_type'] = _get_instance_type(alg_info)
