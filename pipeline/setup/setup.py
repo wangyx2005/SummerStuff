@@ -1,5 +1,6 @@
 import json
 from zipfile import ZipFile
+import io
 import sys
 
 import boto3
@@ -61,6 +62,7 @@ def _get_task_credentials():
     credentials['AWS_DEFAULT_OUTPUT'] = 'json'
     credentials['AWS_ACCESS_KEY_ID'] = AWSAccessKeyId
     credentials['AWS_SECRET_ACCESS_KEY'] = AWSSecretKey
+    return credentials
 
 # SQS related
 
@@ -280,10 +282,10 @@ def _get_role_arn(role_name):
     '''
     '''
     try:
-        res = boto3.client('iam').get_role(role_name)
+        res = boto3.client('iam').get_role(RoleName=role_name)
     except ClientError as e:
         print(e)
-        print('Does not have role %s, make sure you have permission on creating iam role and run create_lambda_exec_role()', LAMBDA_EXEC_ROLE_NAME)
+        print('Does not have role %s, make sure you have permission on creating iam role and run create_lambda_exec_role()', role_name)
 
     return res['Role']['Arn']
 
@@ -320,26 +322,25 @@ def _generate_lambda(image, sys_info, request, task_name):
 #     pass
 
 
-def _create_deploy_package(lambda_code, name):
+def _create_deploy_package(lambda_code, zipname):
     '''
     generate the deploy package
     '''
     # TODO: check correctness
-    with open('lambda_run.py', 'w+') as run_file:
+    with open('lambda_function.py', 'w+') as run_file:
         run_file.write(lambda_code)
-    with ZipFile(name, 'w+') as codezip:
-        codezip.write('lambda_run.py')
+    with ZipFile(zipname, 'w') as codezip:
+        codezip.write('lambda_function.py')
 
 
 def _create_lambda_func(zipname):
     '''
     create lambda function
     '''
-    codezip = ZipFile(zipname, 'r')
+    code = open(zipname)
     name = name_generator.haikunate()
     role = _get_role_arn(LAMBDA_EXEC_ROLE_NAME)
-    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_run.lambda_handler', Code={'ZipFile': codezip}, Timeout=10, MemorySize=128)
-    codezip.close()
+    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_function.lambda_handler', Code={'ZipFile': code}, Timeout=10, MemorySize=128)
     return res['FunctionArn']
 
 
@@ -384,7 +385,7 @@ def _get_sys_info(key_pair, account_id, region):
     return info
 
 
-def pipeline_setup(request, sys_info):
+def pipeline_setup(request, sys_info, clean):
     '''
     based on the user request, set up the whole thing.
     para: request:
@@ -410,8 +411,9 @@ def pipeline_setup(request, sys_info):
 
     # set ecs task
     image = get_image_info(request['name'])
-    # info = user_request['process']['algorithms'][0]
+    # info only need port, variables, UPLOADBUCKET & sqs.url
     info = {}
+    info['port'] = request['port']
     info['variables'] = request['variables']
     # Changable, need to change on senquential run
     info['UPLOADBUCKET'] = request['output_s3_name']
@@ -421,11 +423,16 @@ def pipeline_setup(request, sys_info):
     # generate task definition
     credentials = _get_task_credentials()
     task = _generate_task_definition(image, info, credentials)
+    clean['task'].append(task)
+
+    print(json.dumps(task, sort_keys=True, indent='    '))
 
     # set lambda
-    code = _generate_lambda(image, sys_info, request)
-    _create_deploy_package(code)
-    lambda_arn = _create_lambda_func()
+    code = _generate_lambda(image, sys_info, request, task['taskDefinition']['family'])
+
+    zipname = request['name'] + name_generator.haikunate() + '.zip'
+    _create_deploy_package(code, zipname)
+    lambda_arn = _create_lambda_func(zipname)
 
     # set s3
     input_s3 = _get_or_create_s3(request['input_s3_name'])
@@ -449,7 +456,14 @@ def main(user_request):
     sys_info = _get_sys_info(user_request['key_pair'], user_request[
                              'account_id'], user_request['region'])
 
+    print(json.dumps(sys_info, sort_keys=True, indent='    '))
+
     clean = {}
+    clean['sqs'] = []
+    clean['task'] = []
+    clean['lambda'] = []
+    clean['cloudwatch'] = _get_or_create_queue('shutdown_alarm_sqs')
+
     if user_request['process']['type'] == 'single_run':
         request = {}
         request.update(user_request['process']['algorithms'][0])
@@ -457,7 +471,8 @@ def main(user_request):
         request['output_s3_name'] = user_request['output_s3_name']
         request['sqs'] = name_generator.haikunate()
         request['alarm_sqs'] = 'shutdown_alarm_sqs'
-        clean = pipeline_setup(request, sys_info)
+        print(json.dumps(request, sort_keys=True, indent='    '))
+        pipeline_setup(request, sys_info, clean)
 
     with open('clean_up.json', 'w+') as tmpfile:
         json.dump(clean, tmpfile, sort_keys=True, indent='    ')
