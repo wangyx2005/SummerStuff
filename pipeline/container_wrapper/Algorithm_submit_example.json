@@ -6,7 +6,7 @@
     "executable_path": "/change123",
     "run_command": "sh /change123 $input",
     "name": "change123-s3",
-    "Memory": 
+    "memory": 
     {
         "minimal": 50,
         "suggested": 128
