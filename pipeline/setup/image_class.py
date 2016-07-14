@@ -8,20 +8,20 @@ name_generator = Haikunator()
 
 
 class image:
-    class port:
+    class port_class:
         def __init__(self, port_info):
             '''
             para: port_info: dict contains all port information
             type: dict
             '''
             self.host_port = None
-            self.container_port = port_info['container_port']
-            self.protocal = port_info['protocal']
+            self.container_port = port_info['port']
+            self.protocol = port_info['protocol']
 
         def add_default_port_mapping(self):
             self.host_port = self.container_port
 
-    class variable:
+    class variable_class:
         def __init__(self, var):
             '''
             para var: dict conatins all var information
@@ -47,17 +47,17 @@ class image:
         '''
         self.memory = info['memory']['suggested']
         self.name = info['name']
-        self.image = info['image']
+        self.image = info['container_name']
         # TODO: this need to be changed
         self.cpu = 32
         self.port = {}
         self.env_variable = {}
 
         for port_info in info['port']:
-            self.port[port_info['port']] = self.port(port_info)
+            self.port[port_info['port']] = self.port_class(port_info)
 
         for var in info['user_specified_environment_variables']:
-            self.env_variable[var['name']] = self.variable(var)
+            self.env_variable[var['name']] = self.variable_class(var)
 
     def init_all_variables(self, info, credentials):
         '''
@@ -115,17 +115,20 @@ class image:
         template['containerDefinitions'][0]['image'] = self.image
         # TODO: change 32
         template['containerDefinitions'][0]['cpu'] = 32
+
         # add port
         for port in self.port.values():
             helper = {}
             helper['hostPort'] = port.host_port
             helper['containerPort'] = port.container_port
             helper['protocol'] = port.protocol
-            template['containerDefinitions'][0]['port'].append(helper)
+            template['containerDefinitions'][0]['portMappings'].append(helper)
+
         # add environment variable
-        for var in self.env_variable.items():
-            template['containerDefinitions'][0][
-                'environment'][var['name']] = var['value']
+        for var in self.env_variable.values():
+            if var.value != None:
+                template['containerDefinitions'][0]['environment'].append({'name': var.name, 'value': var.value})
         template['family'] = self.name + '-' + name_generator.haikunate()
 
+        print(json.dumps(template, sort_keys=True, indent='    '))
         return template
