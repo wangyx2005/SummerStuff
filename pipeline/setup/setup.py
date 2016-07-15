@@ -2,6 +2,7 @@ import json
 from zipfile import ZipFile
 from time import sleep
 import sys
+import os
 
 import boto3
 from botocore.exceptions import ClientError
@@ -13,6 +14,8 @@ from _config import *
 WAIT_TIME = 5
 
 name_generator = Haikunator()
+
+LAMBDA_EXEC_TIME = 60
 
 LAMBDA_EXEC_ROLE_NAME = 'lambda_exec_role'
 
@@ -26,6 +29,7 @@ LAMBDA_EXEC_ROLE = {
                 "sqs:SendMessage",
                 "ec2:Describe*",
                 "ec2:StartInsatnces",
+                "iam:PassRole",
                 "ecs:RunTask"
             ],
             "Effect": "Allow",
@@ -358,7 +362,11 @@ def _create_lambda_func(zipname):
         code = tmpfile.read()
     name = name_generator.haikunate()
     role = _get_role_arn(LAMBDA_EXEC_ROLE_NAME)
-    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_function.lambda_handler', Code={'ZipFile': code}, Timeout=10, MemorySize=128)
+    res = boto3.client('lambda').create_function(FunctionName=name, Runtime='python2.7', Role=role, Handler='lambda_function.lambda_handler', Code={'ZipFile': code}, Timeout=LAMBDA_EXEC_TIME, MemorySize=128)
+
+    # TODO: also remove lambda_function.py
+    os.remove(zipname)
+
     return res['FunctionArn']
 
 
@@ -396,7 +404,7 @@ def _get_sys_info(key_pair, account_id, region):
     info['image_id'] = 'ami-8f7687e2'
     info['iam_name'] = 'ecsInstanceRole'
     info['subnet_id'] = 'subnet-d32725fb'
-    info['security_group'] = 'launch-wizard-13'
+    info['security_group'] = 'default'
     info['key_pair'] = key_pair
     info['region'] = region
     info['account_id'] = account_id
