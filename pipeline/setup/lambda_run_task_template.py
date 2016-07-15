@@ -28,7 +28,7 @@ def lambda_handler(event, context):
 
     # TODO: registe instances for cloudwatch shutdown
     alarm_name = instances[0].id + '-shutdown'
-    alarm_act = ['arn:aws:swf:%(region)s:%(account_id)s:action/actions/AWS_EC2.InstanceId.Stop/1.0']
+    alarm_act = ['arn:aws:swf:%(region)s:%(account_id)s:action/actions/AWS_EC2.InstanceId.Terminate/1.0']
     dimension = [{"Name": "InstanceId", "Value": instances[0].id}]
     cw.put_metric_alarm(AlarmName=alarm_name, AlarmActions=alarm_act,
                         MetricName='CPUUtilization', Namespace='AWS/EC2',

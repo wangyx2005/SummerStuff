@@ -131,5 +131,5 @@ class image:
                 template['containerDefinitions'][0]['environment'].append({'name': var.name, 'value': var.value})
         template['family'] = self.name + '-' + name_generator.haikunate()
 
-        print(json.dumps(template, sort_keys=True, indent='    '))
+        # print(json.dumps(template, sort_keys=True, indent='    '))
         return template

@@ -19,7 +19,7 @@ def _delete_s3(bucket):
 
 
 def _delete_all_objects(bucket):
-
+    pass
 
 
 def _delete_task(task_arn):
