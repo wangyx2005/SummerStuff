@@ -20,10 +20,10 @@ def lambda_handler(event, context):
 
     # add ec2 machine into ecs default cluster
     instances = ec2.create_instances(ImageId='%(image_id)s', MinCount=1,
-                                     KeyName='%(key_pair)s',
-                                     SecurityGroups='%(security_group)s',
+                                     KeyName='%(key_pair)s', MaxCount=1,
+                                     SecurityGroups=['%(security_group)s'],
                                      InstanceType='%(instance_type)s',
-                                     SubnetId='%(subnet_id)s',
+                                     # SubnetId='%(subnet_id)s',
                                      IamInstanceProfile={'Name': '%(iam_name)s'})
 
     # TODO: registe instances for cloudwatch shutdown
@@ -33,7 +33,7 @@ def lambda_handler(event, context):
     cw.put_metric_alarm(AlarmName=alarm_name, AlarmActions=alarm_act,
                         MetricName='CPUUtilization', Namespace='AWS/EC2',
                         Statistic='Average', Dimensions=dimension, Period=300,
-                        Unit='Seconds', EvaluationPeriods=2,
+                        EvaluationPeriods=2,
                         Threshold=1, ComparisonOperator='LessThanThreshold')
 
     # send the cloudwatch name for cleanup
