@@ -1,6 +1,7 @@
 import json
 
 import boto3
+from botocore.exceptions import ClientError
 
 session = boto3.session.Session()
 
@@ -46,7 +47,26 @@ if __name__ == '__main__':
     for lambda_arn in info['lambda']:
         _deleta_lambda(lambda_arn)
 
-    for s3 in info['s3']:
-        _delete_s3(s3)
+    # for s3 in info['s3']:
+    #     _delete_s3(s3)
 
-    
+    sqs = info['cloudwatch']
+
+    msgs = {}
+    empty_msgs = {'ResponseMetadata': {'RequestId': '769216cd-462a-51e4-9b58-46ce05705bf1', 'HTTPStatusCode': 200}}
+
+    while len(msgs) == 0:
+        try:
+            msgs = boto3.client('sqs').receive_message(QueueUrl=sqs)
+
+            _delete_queue(msgs['Messages'][0]['Body'])
+            boto3.client('sqs').delete_message(QueueUrl=sqs, ReceiptHandle=msgs['Messages'][0]['ReceiptHandle'])
+            msgs = {}
+        except ClientError:
+            msgs = boto3.client('sqs').receive_message(QueueUrl=sqs)
+        except KeyError:
+            if msgs == empty_msgs:
+                _delete_queue(sqs)
+                break
+            else:
+                raise
