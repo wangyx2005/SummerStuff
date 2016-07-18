@@ -44,6 +44,8 @@ def wrapper(alg_info):
     # generate runscript
     if alg_info['input_file_path'][-1] != '/':
         alg_info['input_file_path'] += '/'
+    if alg_info['output_file_path'][-1] != '/':
+        alg_info['output_file_path'] += '/'
 
     # create a folder with name for dockerfile & runscript
     try:
@@ -99,6 +101,11 @@ def _generate_image(folder_name):
     call(BUILD_COMMAND.split())
     call(TAG_COMMAND.split())
     call(UPLOAD_COMMAND.split())
+
+    # remove the folder generated during the image generatation process
+    remove = 'rm -r ' + folder_name
+    # call(remove.split())
+
     return tagged_name
 
 
@@ -115,10 +122,8 @@ def _generate_image_info(alg_info, container_name):
     '''
     # TODO:
     new_vars = []
-    new_vars.append({'name': 'input_s3', 'required': True})
-    new_vars.append({'name': 'output_s3', 'required': True})
+    new_vars.append({'name': 'output_s3_name', 'required': True})
     new_vars.append({'name': 'sqs', 'required': True})
-    new_vars.append({'name': 'ZIP', 'required': False})
     new_vars.append({'name': 'LOG_LVL', 'required': False})
     new_vars.append({'name': 'NAME', 'required': True})
     new_vars.append({'name': 'AWS_DEFAULT_REGION', 'required': True})
