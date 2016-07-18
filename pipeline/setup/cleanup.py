@@ -60,8 +60,9 @@ if __name__ == '__main__':
             _delete_alarm(msgs['Messages'][0]['Body'])
             boto3.client('sqs').delete_message(QueueUrl=sqs, ReceiptHandle=msgs['Messages'][0]['ReceiptHandle'])
             msgs = {}
-        except ClientError:
+        except ClientError as err:
             msgs = boto3.client('sqs').receive_message(QueueUrl=sqs)
+            print(err)
         except KeyError:
             if msgs == empty_msgs:
                 _delete_queue(sqs)
