@@ -3,8 +3,6 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
-session = boto3.session.Session()
-
 
 def _delete_queue(queue_url):
     boto3.client('sqs').delete_queue(QueueUrl=queue_url)
@@ -59,7 +57,7 @@ if __name__ == '__main__':
         try:
             msgs = boto3.client('sqs').receive_message(QueueUrl=sqs)
 
-            _delete_queue(msgs['Messages'][0]['Body'])
+            _delete_alarm(msgs['Messages'][0]['Body'])
             boto3.client('sqs').delete_message(QueueUrl=sqs, ReceiptHandle=msgs['Messages'][0]['ReceiptHandle'])
             msgs = {}
         except ClientError:
