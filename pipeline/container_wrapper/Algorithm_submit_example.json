@@ -2,9 +2,9 @@
     "container_name": "wangyx2005/change123",
     "system": "ubuntu",
     "input_file_path": "/",
-    "output_file_path": "/result",
+    "output_file_path": "/",
     "executable_path": "/change123",
-    "run_command": "sh /change123 $input",
+    "run_command": "sh /change123.sh $input $output",
     "name": "change123-s3",
     "memory": 
     {
