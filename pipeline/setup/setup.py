@@ -506,6 +506,7 @@ def main(user_request):
         s3_names.append(user_request['input_s3_name'])
         for _ in range(len(user_request['process']['algorithms']) - 1):
             s3_names.append(name_generator.haikunate())
+        s3_names.append(user_request['output_s3_name']) 
         i = 0
         for alg in user_request['process']['algorithms']:
             request = {}
