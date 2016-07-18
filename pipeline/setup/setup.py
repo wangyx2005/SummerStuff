@@ -501,6 +501,21 @@ def main(user_request):
         request['sqs'] = name_generator.haikunate()
         request['alarm_sqs'] = clean['cloudwatch']
         pipeline_setup(request, sys_info, clean)
+    elif user_request['process']['type'] == 'sequence_run':
+        s3_names = []
+        s3_names.append(user_request['input_s3_name'])
+        for _ in range(len(user_request['process']['algorithms']) - 1):
+            s3_names.append(name_generator.haikunate())
+        i = 0
+        for alg in user_request['process']['algorithms']:
+            request = {}
+            request.update(user_request['process']['algorithms'][i])
+            request['input_s3_name'] = s3_names[i]
+            request['output_s3_name'] = s3_names[i + 1]
+            request['sqs'] = name_generator.haikunate()
+            request['alarm_sqs'] = clean['cloudwatch']
+            pipeline_setup(request, sys_info, clean)
+            i += 1
 
     # finish setup
     print('-----------------------------------------------------------')
