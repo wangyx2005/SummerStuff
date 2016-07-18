@@ -10,7 +10,7 @@ RUN python3 -m pip install boto3
 
 RUN mkdir -p /ecs_container
 
-WORKDIR /esc_container
+WORKDIR /ecs_container
 
 COPY runscript.py runscript.py
 
