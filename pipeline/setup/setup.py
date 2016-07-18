@@ -15,7 +15,7 @@ WAIT_TIME = 5
 
 name_generator = Haikunator()
 
-LAMBDA_EXEC_TIME = 60
+LAMBDA_EXEC_TIME = 300
 
 LAMBDA_EXEC_ROLE_NAME = 'lambda_exec_role'
 
@@ -438,14 +438,16 @@ def pipeline_setup(request, sys_info, clean):
 
     # set ecs task
     image = get_image_info(request['name'])
-    # info only need port, variables, UPLOADBUCKET & sqs.url
+
+    # info only need port, variables, output_s3_name, NAME & sqs
     info = {}
     info['port'] = request['port']
     info['variables'] = request['variables']
     # Changable, need to change on senquential run
-    info['UPLOADBUCKET'] = request['output_s3_name']
+    info['variables']['output_s3_name'] = request['output_s3_name']
     # QueueUrl
-    info['QUEUEURL'] = request['sqs']
+    info['variables']['sqs'] = request['sqs']
+    info['variables']['NAME'] = request['name']
 
     # generate task definition
     credentials = _get_task_credentials()
