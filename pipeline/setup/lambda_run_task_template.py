@@ -118,9 +118,7 @@ def lambda_handler(event, context):
         ec2InstanceId = create_ec2()
     print('run time {}'.format((time() - start_time)))
 
-    i = 0
     while not start_task('default', %(memory)s):
-        i += 1
         pass
 
     print('run time {}'.format((time() - start_time)))
