@@ -56,8 +56,6 @@ You can added manually on aws console or run the following command.
 ```
 ``` 
 
-
-
 #### TODO list:
 - one to all / all to one algorithm setup
 - workflow language
