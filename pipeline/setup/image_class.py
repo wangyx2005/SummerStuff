@@ -119,11 +119,14 @@ class image:
 
         # add port
         for port in self.port.values():
-            helper = {}
-            helper['hostPort'] = port.host_port
-            helper['containerPort'] = port.container_port
-            helper['protocol'] = port.protocol
-            template['containerDefinitions'][0]['portMappings'].append(helper)
+            if port.host_port is not None:
+                helper = {}
+                helper['hostPort'] = port.host_port
+                helper['containerPort'] = port.container_port
+                helper['protocol'] = port.protocol
+                template['containerDefinitions'][0]['portMappings'].append(helper)
+
+        # print(json.dumps(template['containerDefinitions'][0]['portMappings']))
 
         if len(template['containerDefinitions'][0]['portMappings']) == 0:
             del template['containerDefinitions'][0]['portMappings']
