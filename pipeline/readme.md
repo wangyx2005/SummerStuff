@@ -32,10 +32,10 @@ Lastly, create a role called __lambda_exec_role__ with the following policy:
                 "ec2:Describe*",
                 "ec2:StartInsatnces",
                 "ec2:RunInstances",
-                "ec2:*",
-                "ecs:*",
                 "iam:PassRole",
-                "ecs:RunTask"
+                "ecs:StartTask",
+                "ecs:ListContainerInstances",
+                "ecs:DescribeContainerInstances"
             ],
             "Effect": "Allow",
             "Resource": [
