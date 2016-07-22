@@ -64,13 +64,16 @@ if __name__ == '__main__':
             msgs = boto3.client('sqs').receive_message(QueueUrl=sqs)
 
             _delete_alarm(msgs['Messages'][0]['Body'])
-            boto3.client('sqs').delete_message(QueueUrl=sqs, ReceiptHandle=msgs['Messages'][0]['ReceiptHandle'])
+            boto3.client('sqs').delete_message(
+                QueueUrl=sqs, ReceiptHandle=msgs['Messages'][0]['ReceiptHandle'])
             msgs = {}
         except ClientError as err:
             msgs = boto3.client('sqs').receive_message(QueueUrl=sqs)
             print(err)
         except KeyError:
-            if msgs == empty_msgs:
+            if len(msgs) == 1 and 'ResponseMetadata' in msgs and \
+                    'HTTPStatusCode' in msgs['ResponseMetadata'] and \
+                    msgs['ResponseMetadata']['HTTPStatusCode'] == 200:
                 _delete_queue(sqs)
                 break
             else:
