@@ -125,10 +125,18 @@ class image:
             helper['protocol'] = port.protocol
             template['containerDefinitions'][0]['portMappings'].append(helper)
 
+        if len(template['containerDefinitions'][0]['portMappings']) == 0:
+            del template['containerDefinitions'][0]['portMappings']
+
         # add environment variable
         for var in self.env_variable.values():
-            if var.value != None:
-                template['containerDefinitions'][0]['environment'].append({'name': var.name, 'value': var.value})
+            if var.value is not None:
+                template['containerDefinitions'][0]['environment'].append(
+                    {'name': var.name, 'value': var.value})
+
+        if len(template['containerDefinitions'][0]['environment']) == 0:
+            del template['containerDefinitions'][0]['environment']
+
         template['family'] = self.name + '-' + name_generator.haikunate()
 
         # print(json.dumps(template, sort_keys=True, indent='    '))
