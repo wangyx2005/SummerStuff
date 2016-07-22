@@ -37,9 +37,9 @@ def lambda_handler(event, context):
     # add ec2 machine into ecs default cluster
     instances = ec2.create_instances(ImageId='%(image_id)s', MinCount=1,
                                      KeyName='%(key_pair)s', MaxCount=1,
-                                     SecurityGroups=['%(security_group)s'],
+                                     # SecurityGroups=['%(security_group)s'],
                                      InstanceType='%(instance_type)s',
-                                     # SubnetId='%(subnet_id)s',
+                                     SubnetId='%(subnet_id)s',
                                      IamInstanceProfile={'Name': '%(iam_name)s'})
 
     # TODO: registe instances for cloudwatch shutdown

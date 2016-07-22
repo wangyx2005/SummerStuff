@@ -1,7 +1,7 @@
 {
-    "input_s3_name": "wyx-test-input",
-    "output_s3_name": "wyx-test-output",
-    "key_pair": "ubuntu-aws",
+    "input_s3_name": "container-clouds-input",
+    "output_s3_name": "container-clouds-output",
+    "key_pair": "wyx-cci",
     "account_id": "261965710151",
     "region":"us-east-1",
     "process": 
@@ -11,7 +11,7 @@
         [
             {
                 "name": "change123-s3",
-                "port": [9090],
+                "port": [],
                 "variables":
                 {
                     "TEST_ENV": "blah blah blah"
