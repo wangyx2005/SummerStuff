@@ -32,6 +32,11 @@ def _delete_alarm(alarm_name):
     boto3.client('cloudwatch').delete_alarms(AlarmNames=[alarm_name])
 
 
+def _delete_lambda_log(lambda_arn):
+    name = '/aws/lambda/' + lambda_arn.split(':')[-1]
+    boto3.client('logs').delete_log_group(logGroupName=name)
+
+
 if __name__ == '__main__':
     with open('clean_up.json', 'r') as tmpfile:
         info = json.load(tmpfile)
@@ -44,6 +49,7 @@ if __name__ == '__main__':
 
     for lambda_arn in info['lambda']:
         _deleta_lambda(lambda_arn)
+        _delete_lambda_log(lambda_arn)
 
     # for s3 in info['s3']:
     #     _delete_s3(s3)
@@ -51,7 +57,7 @@ if __name__ == '__main__':
     sqs = info['cloudwatch']
 
     msgs = {}
-    empty_msgs = {'ResponseMetadata': {'RequestId': '769216cd-462a-51e4-9b58-46ce05705bf1', 'HTTPStatusCode': 200}}
+    empty_msgs = '''\{'ResponseMetadata': \{'HTTPStatusCode': 200, 'RequestId': '([a-z0-9]*-){4}[a-z0-9]*', \}\}'''
 
     while len(msgs) == 0:
         try:
@@ -68,4 +74,5 @@ if __name__ == '__main__':
                 _delete_queue(sqs)
                 break
             else:
+                print(msgs)
                 raise
