@@ -57,7 +57,7 @@ if __name__ == '__main__':
     sqs = info['cloudwatch']
 
     msgs = {}
-    empty_msgs = '''\{'ResponseMetadata': \{'HTTPStatusCode': 200, 'RequestId': '([a-z0-9]*-){4}[a-z0-9]*', \}\}'''
+#    empty_msgs = '''\{'ResponseMetadata': \{'HTTPStatusCode': 200, 'RequestId': '([a-z0-9]*-){4}[a-z0-9]*', \}\}'''
 
     while len(msgs) == 0:
         try:
