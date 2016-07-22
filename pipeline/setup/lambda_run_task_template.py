@@ -15,6 +15,8 @@ def find_container(cluster, instance_id):
     i = 1
     while True:
         ins = ecs.list_container_instances(cluster=cluster)
+        if len(ins['containerInstanceArns']) == 0:
+            continue
         ins = ecs.describe_container_instances(cluster=cluster, containerInstances=ins['containerInstanceArns'])
         ins = ins['containerInstances']
         for info in ins:
