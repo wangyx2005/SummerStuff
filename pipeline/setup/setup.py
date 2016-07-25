@@ -375,6 +375,7 @@ def _deleta_lambda(name):
 
 
 # utilities for setting up the whole thing
+
 def get_image_info(name):
     '''
     based on the name of the user request, find the image inforomation
@@ -411,9 +412,23 @@ def _get_sys_info(key_pair, account_id, region):
     return info
 
 
+def scatter_all(prev_s3, later_lambda_list):
+    '''
+    used for one-to-all relationship. This utility function create a lambda
+    function that invokes the lambda functions in later_lambda_list
+    para: prev_s3: 
+    type: string
+
+    para: later_lambda_list: a list of sequential algorithms lambda function
+        arn list.
+    type: list
+    '''
+    pass
+
 def pipeline_setup(request, sys_info, clean):
     '''
-    based on the user request, set up the whole thing.
+    receive a json format of request, set up one run instance including sqs,
+    input/output s3, lambda, (cloudwatch shutdown alarm) and ecs task definition.
     para: request:
     {
         "name": "",
@@ -475,7 +490,7 @@ def pipeline_setup(request, sys_info, clean):
 
 def main(user_request):
     '''
-    parse the user_request json
+    parse the user_request json, then setup the whole thing
     para: user_request
     type: json
 
