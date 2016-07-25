@@ -347,11 +347,12 @@ def _create_deploy_package(lambda_code, zipname):
         run_file.write(lambda_code)
     with ZipFile(zipname, 'w') as codezip:
         codezip.write('lambda_function.py')
+    os.remove('lambda_function.py')
 
 
 def _create_lambda_func(zipname):
     '''
-    create lambda function
+    create lambda function using a .zip deploy package
     '''
     # code = io.BytesIO()
     # with ZipFile(code, 'w') as z:
@@ -416,14 +417,29 @@ def scatter_all(prev_s3, later_lambda_list):
     '''
     used for one-to-all relationship. This utility function create a lambda
     function that invokes the lambda functions in later_lambda_list
-    para: prev_s3: 
+    
+    para: prev_s3: the result s3 bucket of the previous algorithm
     type: string
 
     para: later_lambda_list: a list of sequential algorithms lambda function
         arn list.
     type: list
     '''
-    pass
+    lambda_list_string = '['
+    for arn in later_lambda_list:
+        lambda_list_string += arn
+        lambda_list_string += ', '
+    lambda_list_string = lambda_list_string[:-2] + ']'
+
+    # creating a lambda function that trigger other sequential functions
+    with open('scatter_all', 'r') as tmpfile:
+        lambda_code = tmpfile.read() % {'lambda_arn_list': lambda_list_string}
+    _create_deploy_package(lambda_code, 'scatter_all.zip')
+    arn = _create_lambda_func('scatter_all.zip')
+
+    # set previous result s3 bucket to trigger newly created s3 bucket
+    _set_event(prev_s3, arn, 'lambda')
+
 
 def pipeline_setup(request, sys_info, clean):
     '''
