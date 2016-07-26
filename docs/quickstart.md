@@ -1,17 +1,64 @@
-### General
-This is an automatic setup tool for setting up the data analysis pipeline on the AWS. It provides utility functions to facilitate algorithm developer to build their analytical tools in docker container, published them for others to use and users to use those analytical tools to facilitate their analysis.
-
-The __container_wrapper__ folder contains all the utility functions for algorithm developers and __setup__ folder is for user to submit their analytical workflows. 
-Once new algorithm has been added, __algorithms__ folder will be created to save the detailed information about the algorithm.
-
-
 ### For Algorithm Developers
-Have your algorithm containerized, summit a json file describe your algorithm.
-For json file template, see __Algorithm_submit_template.json__. For example of json files, see __Algorithm_submit_example.json__
-Run the following command to wrap your container to fit the requirement of running using our tool on AWS. By default, a public container image repo hosting the revised will be uploaded to Docker Hub.
+Using this automatic tool for algorithm developers is very easy. 
+All you need to do is two things: have your algorithm containerized and prepare a json file to describe your algorithm. 
+Then running the following command to wrap your container to fit the requirement of running using our tool on AWS.
 ```
 python container_wrapper.py your_json_file
+``` 
+By default, a public container image repo hosting the revised will be uploaded to Docker Hub. And a more detailed json file describe your algorithm is generated in ../algorithms folder for algorithm users to use.
+
+
+#### Prepare your json file
+Here is an example of the json file describing one algorithm
 ```
+{
+    "container_name": "wangyx2005/change123",
+    "system": "ubuntu",
+    "input_file_path": "/",
+    "output_file_path": "/",
+    "executable_path": "/change123",
+    "run_command": "sh /change123.sh $input $output",
+    "name": "change123-s3",
+    "instance_type": "",
+    "memory": 
+    {
+        "minimal": 50,
+        "suggested": 128
+    },
+    "CPU":
+    {
+
+    },
+    "user_specified_environment_variables": 
+    [
+        {
+            "name": "TEST_ENV",
+            "required": true
+        }
+    ],
+    "port": 
+    [
+        {
+            "port": 9090,
+            "protocol": "tcp"
+        }
+    ]
+}
+```
+Here is a more detailed explanation of each entry
+- __container_name__: your containerized algorithm image. should be reachable from `docker pull`
+- __system__: the system from which your image is built on. We currently support only ubuntu
+- __run_command__: the command to run your algorithm. please substitute your input file with `$input`, output file/folder with `$output` and using the executable with the full path.
+- __input_file_path__: the folder where input file should be
+- __output_file_path__: the folder where output file should be
+- __executable_path__: the full path of the executable
+- __name__: A name which other algorithm user will refer this algorithm as. Need to be unique.
+
+- __instance_type__: As algorithm developer, we believe you have a better understanding of your algorithm than anyone else. please suggest a instance type where this algorithm preferably running on on AWS.
+- __memory__: the minimal and suggested memory requirement for running this algorithm container. You can omit minimal.
+- __CPU__: 
+- __user_specified_environment_variables__: this is the list of variable you allow other algorithm user to use, such as seed. 
+- __port__: the port number your algorithm exposed.
 
 
 ### For Algorithm User
@@ -59,12 +106,10 @@ Lastly, create a role called __lambda_exec_role__ with the following policy:
     "Version": "2012-10-17"
 }
 ```
+
 You can added manually on aws console or run the following command. 
 ```
-``` 
 
-### TODO list:
-- one to all / all to one algorithm setup
-- workflow language
-- optimize usage of lambda function
-- add support to upload container images to places other than Docker hub
+```
+
+####  
