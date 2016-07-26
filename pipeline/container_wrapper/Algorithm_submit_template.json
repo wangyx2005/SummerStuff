@@ -6,6 +6,7 @@
     "executable": "",               // 
     "run_command": "",              // use $input for input_file_path
     "name": "",                     // build with this name
+    "instance_type": "",
     "memory": 
     {
         "minimal": "",

@@ -132,7 +132,8 @@ def _generate_image_info(alg_info, container_name):
     new_vars.append({'name': 'AWS_SECRET_ACCESS_KEY', 'required': True})
 
     alg_info['container_name'] = container_name
-    alg_info['instance_type'] = _get_instance_type(alg_info)
+    if alg_info['instance_type'] == '':
+        alg_info['instance_type'] = _get_instance_type(alg_info)
     alg_info['user_specified_environment_variables'].extend(new_vars)
     return alg_info
 
