@@ -3,7 +3,7 @@ This is an automatic setup tool for setting up the data analysis pipeline on the
 
 This tool is developed on Python 3.5.1. Using this on previous versions of python 3 or python 2 has not been tested.
 
-Currently we only support us-east-1 region. We will support other regions in the near future.
+Currently we only support __US East (N. Virginia aka "us-east-1")__ region. We will support other regions in the near future.
 
 The __container_wrapper__ folder contains all the utility functions for algorithm developers and __setup__ folder is for user to submit their analytical workflows.
 
