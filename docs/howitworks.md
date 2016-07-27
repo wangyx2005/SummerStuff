@@ -18,7 +18,9 @@ The following is the Amazon services we use to construct this automation:
 - __[AWS CloudWatch](https://aws.amazon.com/cloudwatch)__: Amazon CloudWatch is a monitoring service for AWS cloud resources and the applications you run on AWS. We use this to collect running logs, monitor and terminate idle EC2 instances.
 
 ### Wrap
-In the area of imaging processing, researchers use various different algorithms to processing images. Therefore it is crucial to  
+In the area of imaging processing, researchers use various different algorithms to processing images. Therefore it is crucial to allow users to bring their own algorithm into the work flow. This tool make it very easy to integrating customer own tools, simply installed inside Docker containers and described their behavior precisely using our command line editor or, if user prefer, via a JSon document that can easily imported.
+
+With the information of the algorithm and the containerized algorithm, a new container with a running script is generated. This container is the actual container when the algorithm is used. The running script handles all the hassles to run the processing job: retrieving input information from SQS, downloading input object from S3 bucket, putting input object to correct location, running the processing job, uploading the result object to designed location and managing logs throughout the whole process. 
 
 
 ### Run
@@ -26,7 +28,7 @@ To achieve high scalability, we disassemble complex work flow into two part: sin
 
 
 For each single algorithm processing, a microservice is built around it on AWS:
-- a lambda function is used to monitor the input event. It can be triggered by a file upload to the input file s3 bucket event or invoked by called from other lambda functions. Once it is triggered, it send the information of the input file to a message queue and start a ecs task to start algorithm processing.
+- a lambda function is used to monitor the input event. It can be triggered by a file upload to the input file s3 bucket event or invoked by called from other lambda functions. Once it is triggered, it send the information of the input file to a message queue and start a ECS task to start algorithm processing.
 - a message queue, we use [Amazon Simple Queue Service (SQS)](https://aws.amazon.com/sqs/) is used to hold the information about the input files.
 - a ecs task is used to perform the actual algorithm processing on the cloud. It retrieve the input file information from the message queue, download from sources and process the files. Once it is finished, the resulting file is upload to another s3 bucket and the ecs task is terminated.
 
