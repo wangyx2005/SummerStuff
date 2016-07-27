@@ -57,7 +57,7 @@ Here is a more detailed explanation of each entry
 
 - __instance_type__: As algorithm developer, we believe you have a better understanding of your algorithm than anyone else. please suggest a instance type where this algorithm preferably running on on AWS.
 - __memory__: the minimal and suggested memory requirement for running this algorithm container. You can omit minimal.
-- __CPU__: 
+- __CPU__: the number of CPU used for using algorithm 
 - __user_specified_environment_variables__: this is the list of variable you allow other algorithm user to use, such as seed. 
 - __port__: the port number your algorithm exposed.
 
