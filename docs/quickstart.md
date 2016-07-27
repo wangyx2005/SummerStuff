@@ -118,17 +118,24 @@ You can added manually on aws console or run the following command.
 ```
 
 #### Install requirements
-This tool requires two third party libaries: boto3 and Haikunator. 
+This tool requires two third party libaries: boto3 and Haikunator. Use pip to install this two. 
 ```
 pip install -r requirements.txt
 ```
 
-#### Describe your workflow
+#### Describe your work flow
 
 
 
-#### Run your workflow
-Once 
-
+#### Run your work flow
+Once a JSon file of your work flow description is generated, you can run your work flow on the cloud simply by running the following command.
+```
+python setup.py your_work_flow_description.json
+``` 
+When the set up is finished, you will receive the following message. You can start uploading your input files and letting cloud handle the rest.
+```
+You can start upload files at some_S3_bucket_name
+You will get your result at some_S3_bucket_name
+```
 
 
