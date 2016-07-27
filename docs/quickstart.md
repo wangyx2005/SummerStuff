@@ -1,3 +1,4 @@
+## Quick Start
 ### For Algorithm Developers
 Using this automatic tool for algorithm developers is very easy. 
 All you need to do is two things: have your algorithm containerized and prepare a json file to describe your algorithm. 
@@ -64,14 +65,17 @@ Here is a more detailed explanation of each entry
 ### For Algorithm User
 #### Prerequisition on AWS
 
-Make sure you have full access to **Lambda**, **Simple Queue Services**, **S3**, **EC2 Container Services**, **CloudWatch** and **EC2**.
+Make sure you have full access to **Lambda**, **Simple Queue Services**, **S3**, **EC2 Container Services**, **CloudWatch** and **EC2**. If you are using aws container registry to host container image, __EC2ContainerRegistry__ access will also be needed.
+
+Here is a screen shot of the policies.
+
+
 
 Additionally, make sure you have the following two roles in your IAM: __EC2ActionsAccess__ role with __CloudWatchActionsEC2Access__ policy and  __ecsInstanceRole__ role with __AmazonEC2ContainerServiceforEC2Role__ policy.
 
 The former one allows AWS, more specifically, cloud watch to stop/terminate ec2 instance on your behave. The later one allows ec2 instance register to ecs cluster, poll images for ecr and write logs to CloudWatch log.
-
 These two are will be automatically generated when you first use CloudWatch alarm and ecs if using the aws console. Here is a link about how to sent these up.
-add "swf:*" permission to your account
+
 
 Lastly, create a role called __lambda_exec_role__ with the following policy:
 ```
@@ -106,10 +110,25 @@ Lastly, create a role called __lambda_exec_role__ with the following policy:
     "Version": "2012-10-17"
 }
 ```
+This role will allow lambda function to send input file information to message queue, check resources to start ecs task, launch ec2 instance into ecs cluster if needed and register ec2 on cloudwatch for shutdown.
 
 You can added manually on aws console or run the following command. 
 ```
 
 ```
 
-####  
+#### Install requirements
+This tool requires two third party libaries: boto3 and Haikunator. 
+```
+pip install -r requirements.txt
+```
+
+#### Describe your workflow
+
+
+
+#### Run your workflow
+Once 
+
+
+

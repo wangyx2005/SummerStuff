@@ -9,7 +9,7 @@ Welcome to cloud_pipe's documentation!
 General
 =======
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 2
 
    general
 
@@ -17,7 +17,7 @@ Quick Start
 ===========
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 2
 
    quickstart
 
@@ -25,25 +25,21 @@ Quick Start
 How it works
 ============
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 2
 
    howitworks
-
-Recent Features
-===============
-
 
 API References
 ==============
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 2
 
    api
 
-Future Works
+Roadmap
 ============
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 2
 
    todo
 

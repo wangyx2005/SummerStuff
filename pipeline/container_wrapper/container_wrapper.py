@@ -81,7 +81,7 @@ def _get_instance_type(alg_info):
     return 't2.micro'
 
 
-def _generate_image(folder_name):
+def _generate_image(folder_name, user):
     '''
     build new docker image and upload, return new images
     '''
@@ -89,7 +89,7 @@ def _generate_image(folder_name):
     # PATH = '../algorithms/'
     # name = dockerfile_name.split('.')[0]
     name = folder_name
-    tagged_name = 'wangyx2005/' + name
+    tagged_name = user + '/' + name
     BUILD_COMMAND = 'docker build -t %(name)s %(path)s/.' \
         % {'name': name, 'path': folder_name}
     TAG_COMMAND = 'docker tag %(name)s %(tag)s' % {
