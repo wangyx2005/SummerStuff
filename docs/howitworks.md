@@ -7,9 +7,15 @@ Normally, an image processing work flow contains multiple algorithms and interme
 This tools also facilitates researchers to bring their own algorithms. To use your own algorithm, simply prepare it inside a Docker container, and push the image to Docker Hub or locally. Then, by using the container wrapper tool, you can describe all the details of your algorithm: including its command line options, user defined variables and required resources to run it. 
 
 The following is the Amazon services we use to construct this automation:
-- __[Amazon EC2 Container Service](https://aws.amazon.com/ecs/)__: Amazon ECS is a highly scalable, high performance container management service that supports Docker containers and allows user to easily run applications on a managed cluster of Amazon EC2 instances. 
+- __[Amazon EC2 Container Service (ECS)](https://aws.amazon.com/ecs/)__: In our case, this is the platform of all computational work.
 
-AWS Lambda is a compute service that runs your code in response to events and automatically manages the compute resources for you, making it easy to build applications that respond quickly to new information. Lambda starts running your code within milliseconds of an event such as an image upload, in-app activity, website click, or output from a connected device.
+- __[AWS Lambda](https://aws.amazon.com/lambda)__ : AWS Lambda is a compute service that runs code in response to events. We use this to trigger the actual image processing tasks.
+
+- __[AWS S3](https://aws.amazon.com/s3)__: 
+
+- __[AWS Simple Queue Service (SQS)](https://aws.amazon.com/sqs)__: SQS is a fast, reliable, scalable, fully managed message queuing service. 
+
+- __[AWS CloudWatch](https://aws.amazon.com/cloudwatch)__: Amazon CloudWatch is a monitoring service for AWS cloud resources and the applications you run on AWS. We use this to collect running logs, monitor and terminate idle EC2 instances.
 
 ### Wrap
 In the area of imaging processing, researchers use various different algorithms to processing images. Therefore it is crucial to  
