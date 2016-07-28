@@ -67,13 +67,31 @@ def describe_algorithm():
     info['memory']['minimal'] = input('Please input the minimal memory requirement for running your algorithm in MB. You can omit this\n')
     info['memory']['suggested'] = input('Please input the suggested memory requirement for running your algorithm in MB:\n')
     info['CPU'] = input('Please input the number of CPUs used for this algorithm. You can omit this if you already suggested an instance type.\n')
+
+    info['user_specified_environment_variables'] = []
     addmore = True
     while addmore:
         helper = {}
         helper['name'] = input(
             'Please input the variable name you open to user:\n')
+        helper['required'] = _get_true_or_false('Is this a required variable')
         addmore = _get_true_or_false(
-            'Do you want to add more variable? [y/n]:')
+            'Do you want to add more variables? [y/n]:')
+        info['user_specified_environment_variables'].append(helper)
+
+    info['port'] = []
+    addmore = True
+    while addmore:
+        helper = {}
+        helper['port'] = input(
+            'Please input the port number you open to user:\n')
+        while response != 'tcp' or response != 'udp':
+            response = input(
+                'Please input the protocol of the port: [tcp/udp]\n')
+        helper[''] = response
+        addmore = _get_true_or_false(
+            'Do you want to add more ports? [y/n]:')
+        info['port'].append(helper)
 
     print(json.dumps(info, indent='    ', sort_keys=True))
 
