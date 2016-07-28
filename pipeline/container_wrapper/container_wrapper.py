@@ -35,6 +35,51 @@ def show_runscript(input_path, output_path, name, command):
     print(_generate_runscript(input_path, output_path, name, command))
 
 
+def _get_true_or_false(message, default=False):
+    '''
+    transfer user input Y/n into True or False
+    '''
+    response = input(message)
+    if response == 'Y' or response == 'y':
+        return True
+    elif response == 'N' or response == 'n':
+        return False
+    else:
+        return default
+
+
+def describe_algorithm():
+    info = {}
+    info['container_name'] = input(
+        'Please input your containerized algorithm name:\n')
+    info['system'] = input(
+        'Please input which operating system your container is build on:\n')
+    info['run_command'] = input(
+        'Please input the run command of your algorithm, substituting input file with "$input", output file/folder with "$output", using full path for executable. for example, sh /User/YX/run.sh $input -d $output:\n')
+    info['input_file_path'] = input(
+        'Please input the folder where input file should be:\n')
+    info['output_file_path'] = input(
+        'Please input the folder where output file should be:\n')
+    info['name'] = input(
+        'Please input the name you want other user refer your algorithm as:\n')
+    info['instance_type'] = input('Please input one instance type on aws best fit running your algorithm. You can omit this:\n')
+    info['memory'] = {}
+    info['memory']['minimal'] = input('Please input the minimal memory requirement for running your algorithm in MB. You can omit this\n')
+    info['memory']['suggested'] = input('Please input the suggested memory requirement for running your algorithm in MB:\n')
+    info['CPU'] = input('Please input the number of CPUs used for this algorithm. You can omit this if you already suggested an instance type.\n')
+    addmore = True
+    while addmore:
+        helper = {}
+        helper['name'] = input(
+            'Please input the variable name you open to user:\n')
+        addmore = _get_true_or_false(
+            'Do you want to add more variable? [y/n]:')
+
+    print(json.dumps(info, indent='    ', sort_keys=True))
+
+    return info
+
+
 def wrapper(alg_info):
     '''
     automatic generate dockerfile
@@ -141,6 +186,10 @@ def _generate_image_info(alg_info, container_name):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('please input at least one file')
+
+    if sys.argv[1] == '-d':
+        describe_algorithm()
+        exit(0)
 
     for file_name in sys.argv[1:]:
         with open(file_name, 'r') as data_file:
