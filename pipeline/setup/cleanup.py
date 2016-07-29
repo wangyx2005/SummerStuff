@@ -79,3 +79,5 @@ if __name__ == '__main__':
             else:
                 print(msgs)
                 raise
+
+    print('Successfully clean up everything')
