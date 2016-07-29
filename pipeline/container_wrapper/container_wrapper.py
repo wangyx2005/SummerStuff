@@ -66,7 +66,7 @@ def _get_int(message, default):
         response = input(message)
         if response == '':
             if default is None:
-                print('Please input an integer value')
+                print('Please input an integer value.')
                 continue
             else:
                 return default
@@ -74,10 +74,13 @@ def _get_int(message, default):
             try:
                 return int(response)
             except ValueError:
-                print('Please input integer value')
+                print('Please input integer value.')
 
 
 def describe_algorithm():
+    '''
+
+    '''
     info = {}
     info['container_name'] = input(
         'Please input your containerized algorithm name:\n')
@@ -125,7 +128,7 @@ def describe_algorithm():
             print('This port number has already been set\n')
             continue
         helper['port'] = port
-        while response != 'tcp' or response != 'udp':
+        while response != 'tcp' and response != 'udp':
             response = input(
                 'Please input the protocol of the port: [tcp/udp]\n')
         helper['protocol'] = response
