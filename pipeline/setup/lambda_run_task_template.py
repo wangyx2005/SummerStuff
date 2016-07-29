@@ -12,7 +12,8 @@ cw = boto3.client('cloudwatch')
 
 # maintain a set of container instance arn that isnot the instance_type wanted
 instances = set()
-# the instance id which is just created
+
+#
 ec2InstanceId = ''
 
 
@@ -47,7 +48,7 @@ def get_instances_arns(cluster):
     return arns
 
 
-def start_task(cluster, memory):
+def start_task(cluster, memory, ec2InstanceId=''):
     '''
     given a cluster and task required memory, return true if successfully start
     task.
@@ -58,7 +59,7 @@ def start_task(cluster, memory):
     ec2_started = False
     for inc in ins:
         info = ec2.describe_instances(InstanceIds=[inc['ec2InstanceId']])
-        if info['Reservations']['Instances'][0]['InstancesType'] != '%(instance_type)s':
+        if info['Reservations'][0]['Instances'][0]['InstanceType'] != '%(instance_type)s':
             instances.add(inc['containerInstanceArn'])
         else:
             if inc['ec2InstanceId'] == ec2InstanceId:
@@ -66,8 +67,8 @@ def start_task(cluster, memory):
             if inc['remainingResources'] >= memory:
                 res = ecs.start_task(
                     taskDefinition='%(task_name)s',
-                    containerInstances=[inc['containerInstanceArns']])
-                if len(res['tasks'][0]['failures']) == 0:
+                    containerInstances=[inc['containerInstanceArn']])
+                if len(res['failures']) == 0:
                     return True
     if ec2_started:
         ec2InstanceId = create_ec2()
@@ -78,6 +79,7 @@ def start_task(cluster, memory):
 def create_ec2():
     '''
     add ec2 machine into ecs default cluster and add cloudwatch shut down
+    :rtype: string
     '''
     # add ec2 machine into ecs default cluster
     ec2 = boto3.resource('ec2')
@@ -119,7 +121,7 @@ def lambda_handler(event, context):
         ec2InstanceId = create_ec2()
     print('run time {}'.format((time() - start_time)))
 
-    while not start_task('default', %(memory)s):
+    while not start_task('default', %(memory)s, ec2InstanceId):
         pass
 
     print('run time {}'.format((time() - start_time)))
