@@ -5,6 +5,7 @@
 
 Welcome to cloud_pipe's documentation!
 ======================================
+This is an automatic setup tool for setting up the data analysis pipeline on the Amazon Web Services (AWS). It provides an easy to deploy, use and scale your data analysis algorithm and work flow on the cloud as well as sharing between colleges and institutions. It is developed in Python 3 using boto, the AWS SDK for Python. 
 
 General
 =======
