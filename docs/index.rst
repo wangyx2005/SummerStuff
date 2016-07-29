@@ -30,6 +30,14 @@ How it works
 
    howitworks
 
+
+Demos
+============
+.. toctree::
+   :maxdepth: 2
+
+
+
 API References
 ==============
 .. toctree::
