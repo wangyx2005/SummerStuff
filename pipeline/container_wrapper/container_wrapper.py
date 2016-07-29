@@ -79,7 +79,9 @@ def _get_int(message, default):
 
 def describe_algorithm():
     '''
+    command line editor of the detailed information of algorithm container.
 
+    :rtype: json
     '''
     info = {}
     info['container_name'] = input(
@@ -112,9 +114,9 @@ def describe_algorithm():
         helper['name'] = input(
             'Please input the variable name you open to user:\n')
         helper['required'] = _get_true_or_false(
-            'Is this a required variable? [y/n]: n')
+            'Is this a required variable? [y/n]: ')
         addmore = _get_true_or_false(
-            'Do you want to add more variables? [y/n]: n')
+            'Do you want to add more variables? [y/n]: ')
         info['user_specified_environment_variables'].append(helper)
 
     info['port'] = []
@@ -136,7 +138,7 @@ def describe_algorithm():
             'Do you want to add more ports? [y/n]:')
         info['port'].append(helper)
 
-    print(json.dumps(info, indent='    ', sort_keys=True))
+    print(json.dumps(info, indent='    '))
 
     return info
 
