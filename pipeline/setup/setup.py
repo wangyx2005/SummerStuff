@@ -321,6 +321,7 @@ def _generate_lambda(image, sys_info, request, task_name):
     '''
     lambda_para = {}
     lambda_para['instance_type'] = image.instance_type
+    lambda_para['memory'] = image.memory
     lambda_para['task_name'] = task_name
     lambda_para.update(request)
     lambda_para.update(sys_info)

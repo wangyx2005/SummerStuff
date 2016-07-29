@@ -50,8 +50,7 @@ def get_instances_arns(cluster):
 def start_task(cluster, memory):
     '''
     given a cluster and task required memory, return true if successfully start
-    task. 
-
+    task.
     '''
     arns = get_instances_arns(cluster)
     ins = ecs.describe_container_instances(
