@@ -413,17 +413,20 @@ def _get_sys_info(key_pair, account_id, region):
     return info
 
 
+# workflow relation related
+
+
 def scatter_all(prev_s3, later_lambda_list):
     '''
     used for one-to-all relationship. This utility function create a lambda
     function that invokes the lambda functions in later_lambda_list
-    
-    para: prev_s3: the result s3 bucket of the previous algorithm
-    type: string
 
-    para: later_lambda_list: a list of sequential algorithms lambda function
+    :para: prev_s3: the result s3 bucket of the previous algorithm
+    :type: string
+
+    :para: later_lambda_list: a list of sequential algorithms lambda function
         arn list.
-    type: list
+    :type: list
     '''
     lambda_list_string = '['
     for arn in later_lambda_list:
