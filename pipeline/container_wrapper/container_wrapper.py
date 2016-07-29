@@ -39,7 +39,11 @@ def _get_true_or_false(message, default=False):
     '''
     transfer user input Y/n into True or False
     '''
+    expected_response = {'y', 'Y', 'n', 'N', ''}
     response = input(message)
+    while response not in expected_response:
+        response = input(message)
+
     if response == 'Y' or response == 'y':
         return True
     elif response == 'N' or response == 'n':
@@ -51,11 +55,17 @@ def _get_true_or_false(message, default=False):
 def _get_int(message, default):
     '''
     transfer user input to int numbers. If user omit the input, get default
-    number instand. 
+    number instand.
     '''
-    response = input(message)
-    if response != '':
-        return int(response)
+    while True:
+        response = input(message)
+        if response == '':
+            return default
+        else:
+            try:
+                return int(response)
+            except ValueError:
+                print('Please input integer value')
 
 
 def describe_algorithm():
@@ -223,6 +233,9 @@ if __name__ == '__main__':
 
     if sys.argv[1] == '-d':
         describe_algorithm()
+        exit(0)
+    elif sys.argv[1] == '-t':
+        print(_get_int('', 0))
         exit(0)
 
     for file_name in sys.argv[1:]:
