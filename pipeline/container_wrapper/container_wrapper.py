@@ -48,6 +48,16 @@ def _get_true_or_false(message, default=False):
         return default
 
 
+def _get_int(message, default):
+    '''
+    transfer user input to int numbers. If user omit the input, get default
+    number instand. 
+    '''
+    response = input(message)
+    if response != '':
+        return int(response)
+
+
 def describe_algorithm():
     info = {}
     info['container_name'] = input(
@@ -62,11 +72,15 @@ def describe_algorithm():
         'Please input full path to the folder where output file should be:\n')
     info['name'] = input(
         'Please input the name you want other user refer your algorithm as:\n')
-    info['instance_type'] = input('Please input one instance type on aws best fit running your algorithm. You can omit this:\n')
+    info['instance_type'] = input(
+        'Please input one instance type on aws best fit running your algorithm. You can omit this:\n')
     info['memory'] = {}
-    info['memory']['minimal'] = int(input('Please input the minimal memory requirement for running your algorithm in MB. You can omit this\n'))
-    info['memory']['suggested'] = int(input('Please input the suggested memory requirement for running your algorithm in MB:\n'))
-    info['CPU'] = int(input('Please input the number of CPUs used for this algorithm. You can omit this if you already suggested an instance type.\n'))
+    info['memory']['minimal'] = int(input(
+        'Please input the minimal memory requirement for running your algorithm in MB. You can omit this\n'))
+    info['memory']['suggested'] = int(input(
+        'Please input the suggested memory requirement for running your algorithm in MB:\n'))
+    info['CPU'] = int(input(
+        'Please input the number of CPUs used for this algorithm. You can omit this if you already suggested an instance type.\n'))
 
     info['user_specified_environment_variables'] = []
     addmore = True
@@ -74,7 +88,8 @@ def describe_algorithm():
         helper = {}
         helper['name'] = input(
             'Please input the variable name you open to user:\n')
-        helper['required'] = _get_true_or_false('Is this a required variable? [y/n]: ')
+        helper['required'] = _get_true_or_false(
+            'Is this a required variable? [y/n]: ')
         addmore = _get_true_or_false(
             'Do you want to add more variables? [y/n]: ')
         info['user_specified_environment_variables'].append(helper)
