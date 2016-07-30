@@ -68,11 +68,12 @@ def start_task(cluster, memory):
                     taskDefinition='%(task_name)s',
                     containerInstances=[inc['containerInstanceArn']])
                 if len(res['failures']) == 0:
+                    print('start tast at {}'.format(inc['containerInstanceArn']))
                     return True
     if ec2_started:
         ec2InstanceId = create_ec2()
         print('created ec2 has been used, start new ec2')
-    return False, ec2InstanceId
+    return False
 
 
 def create_ec2():
