@@ -13,9 +13,7 @@ cw = boto3.client('cloudwatch')
 # maintain a set of container instance arn that isnot the instance_type wanted
 instances = set()
 
-#
 ec2InstanceId = ''
-
 
 # def find_container(cluster, instance_id):
 #     while True:
@@ -48,11 +46,12 @@ def get_instances_arns(cluster):
     return arns
 
 
-def start_task(cluster, memory, ec2InstanceId=''):
+def start_task(cluster, memory):
     '''
     given a cluster and task required memory, return true if successfully start
     task.
     '''
+    global ec2InstanceId
     arns = get_instances_arns(cluster)
     ins = ecs.describe_container_instances(
         cluster=cluster, containerInstances=arns)['containerInstances']
@@ -73,7 +72,7 @@ def start_task(cluster, memory, ec2InstanceId=''):
     if ec2_started:
         ec2InstanceId = create_ec2()
         print('created ec2 has been used, start new ec2')
-    return False
+    return False, ec2InstanceId
 
 
 def create_ec2():
@@ -115,14 +114,15 @@ def lambda_handler(event, context):
     QueueUrl = '%(sqs)s'
     sqs.send_message(QueueUrl=QueueUrl, MessageBody=json.dumps(event))
 
+    print('run time {}'.format((time() - start_time)))
     # start task at given type of instance
     if not start_task('default', %(memory)s):
         print('firest check run time {}'.format((time() - start_time)))
         ec2InstanceId = create_ec2()
-    print('run time {}'.format((time() - start_time)))
+        print('run time {}'.format((time() - start_time)))
 
-    while not start_task('default', %(memory)s, ec2InstanceId):
-        pass
+        while not start_task('default', %(memory)s):
+            pass
 
     print('run time {}'.format((time() - start_time)))
     return 'send messages to sqs and start ecs'
