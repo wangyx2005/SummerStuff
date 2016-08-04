@@ -3,12 +3,6 @@ This is an automatic setup tool for setting up the data analysis pipeline on the
 
 This tool is developed on Python 3.5.1. Using this on previous versions of python 3 or python 2 has not been tested.
 
-Currently we only support __US East (N. Virginia aka "us-east-1")__ region. We will support other regions in the near future.
-
-The __container_wrapper__ folder contains all the utility functions for algorithm developers and __setup__ folder is for user to submit their analytical workflows.
-
-Once new algorithm has been added, __algorithms__ folder will be created to save the detailed information about the algorithm.
-
 Now cloud_pipe is on Pypi, and it supports pip. To install cloud_pipe,
 `pip install cloud_pipe`. After install cloud_pipe:
 
@@ -16,7 +10,8 @@ To submit an algorithm or bring your analyze tool, use `wrap -d`. For more optio
 ```
 wrap --help
 ```
-You will see the following options
+You will see the following options:
+
 ```
 usage: wrap-script.py [-h] [-d] [-f FILES [FILES ...]] [-s] [-r REGISTRY]
                       [-u USER]
@@ -34,3 +29,29 @@ optional arguments:
                         default is Docker hub
   -u USER, --user USER  user name of docker hub account, default is wangyx2005
 ```
+
+To run single algorithm or deploy you analytical work flow, use `setup-pipe -f your-workflow-json`. For more options, check: 
+```
+setup-pipe --help
+```
+You will see the following options:
+
+```
+usage: setup-pipe-script.py [-h] [-uu] [-f FILES [FILES ...]]
+
+A tool to set up your pipeline
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -uu, --use_user_credential
+                        use user credential to run ecs task, we suggest using
+                        a less privileged user for running ecs. For more
+                        information, see our docs
+  -f FILES [FILES ...], --files FILES [FILES ...]
+                        json files to describe your work flow
+```
+
+To clean up your resources on the AWS after finishing your runs, use `clean`.
+If you are using a multiple step work flow, all your intermedia files stays for your future references.
+You do not need to do the clean up, as in our current setup, AWS will not charge you anything for the set up if you are not running anything except S3 storage for your results.
+Performing the clean up just to keep your AWS console neat.
