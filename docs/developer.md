@@ -14,10 +14,15 @@ After you finish describe your algorithm, a json file is showed to let you verif
 json.pic
 
 Once you confirm everything is correct, cloud_pipe will build a new image and upload to your docker hub account. Make sure you have already sign up and sign in you docker hub account.
-At the same time, a more detailed json file describe your algorithm is generated and stored in ~/.cloud_pipe/algorithms folder under your algorithm name for algorithm users to use locally. 
+At the same time, a more detailed json file describe your algorithm will be generated and stored in ~/.cloud_pipe/algorithms folder under your algorithm name for algorithm users to use locally. 
 
 #### Use pre-prepared json file
-cloud_pipe provides 
+cloud_pipe provides options using pre-prepared json file directly. use
+```
+wrap --files list-of-json-files --user your-docker-hub-account
+```
+cloud_pipe will build new images based on those files and upload to your docker hub account. At the same time, more detailed json files describe your algorithms will be generated and stored in ~/.cloud_pipe/algorithms folder under your algorithm name for algorithm users to use locally. 
+
 
 ##### Prepare your json file
 If you prefer,  your algorithm json file directly. Here is an example of the json file describing the same algorithm in Using command line editor section.
@@ -55,6 +60,7 @@ If you prefer,  your algorithm json file directly. Here is an example of the jso
 ```
 
 ##### detailed explanation of algorithm entries:
+
 - __container_name__: your containerized algorithm image. should be reachable from `docker pull`
 - __system__: the system from which your image is built on. We currently support only ubuntu
 - __run_command__: the command to run your algorithm. please substitute your input file with `$input`, output file/folder with `$output` and using the executable with the full path.
@@ -71,3 +77,7 @@ If you prefer,  your algorithm json file directly. Here is an example of the jso
 
 
 
+We will add a registry option to allow people upload images to other registries like amazon container registry.
+
+Right now, sharing algorithm between users requires sharing corresponding json files in ~/.cloud_pipe/algorithms as well.
+We are working on to set up a database to enable developers to save the algorithm json file remotely to make it easy for users to use their algorithms
