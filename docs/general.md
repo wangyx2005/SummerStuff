@@ -51,7 +51,7 @@ optional arguments:
                         json files to describe your work flow
 ```
 
-To clean up your resources on the AWS after finishing your runs, use `clean`.
+To clean up your resources on the AWS after finishing your runs, use `clean-up`.
 If you are using a multiple step work flow, all your intermedia files stays for your future references.
 You do not need to do the clean up, as in our current setup, AWS will not charge you anything for the set up if you are not running anything except S3 storage for your results.
 Performing the clean up just to keep your AWS console neat.
