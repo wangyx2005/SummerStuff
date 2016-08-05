@@ -1,4 +1,3 @@
-## Quick Start
 ### For Algorithm Developers
 Using this automatic tool for algorithm developers is very easy. 
 All you need to do is to have your algorithm containerized and run `wrap`
