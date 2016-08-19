@@ -156,5 +156,5 @@ command line scripts for yunpipe.
 command line script for wrapping up user algorithm 
 
 #### yunpipe.script.setup_pipe
-
+command line script for setting up pipeline on the AWS
 
